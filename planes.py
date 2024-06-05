@@ -12,7 +12,7 @@ class Plane(pg.sprite.Sprite):
 
     def create_collide_rect(self):
         self.collide_rect = self.rect.copy()
-        self.collide_rect.scale_by_ip(0.71, 0.8)
+        self.collide_rect.scale_by_ip(0.75, 0.6)
 
     def bullet_reload(self) -> None:
         if self.reload_time != 0:
@@ -51,8 +51,13 @@ class PlayerPlane(Plane):
             self.rect.right = min(self.rect.right + PLAYER_SPEED_X_RIGHT, GAME_SCREEN_WIDTH)
         if keys[pg.K_a]:
             self.rect.left = max(self.rect.left - PLAYER_SPEED_X_LEFT, 0)
-        self.collide_rect.center = self.rect.centerx, self.rect.centery
+        self.collide_rect.center = self.rect.centerx, self.rect.centery + 10
 
     def update(self):
         self.bullet_reload()
         self.handle_player_input()
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+        pg.draw.rect(screen, (255, 0, 0), self.collide_rect)
+        # TODO remove line above, just to test collide rectangles
