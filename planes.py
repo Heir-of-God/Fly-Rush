@@ -29,3 +29,30 @@ class Plane(pg.sprite.Sprite):
 
     def check_bottom_border(self) -> bool:
         return self.rect.bottom <= GAME_SCREEN_HEIGHT
+
+
+class PlayerPlane(Plane):
+    def __init__(self) -> None:
+        super().__init__()
+        self.image: pg.Surface = pg.transform.rotozoom(
+            pg.image.load(f"assets/graphics/planes/{choice(['red', 'blue', 'green', 'yellow'])}1.png"), 0, 0.15
+        ).convert_alpha()
+        self.rect: pg.Rect = self.image.get_rect(center=(706.5, 384))
+        self.create_collide_rect()
+
+    def handle_player_input(self) -> None:
+        keys: pg.key.ScancodeWrapper = pg.key.get_pressed()
+        # Player movement considering edges of the screen
+        if keys[pg.K_w]:
+            self.rect.top = max(self.rect.top - PLAYER_SPEED_Y, 0)
+        if keys[pg.K_s]:
+            self.rect.bottom = min(self.rect.bottom + PLAYER_SPEED_Y, GAME_SCREEN_HEIGHT)
+        if keys[pg.K_d]:
+            self.rect.right = min(self.rect.right + PLAYER_SPEED_X_RIGHT, GAME_SCREEN_WIDTH)
+        if keys[pg.K_a]:
+            self.rect.left = max(self.rect.left - PLAYER_SPEED_X_LEFT, 0)
+        self.collide_rect.center = self.rect.centerx, self.rect.centery
+
+    def update(self):
+        self.bullet_reload()
+        self.handle_player_input()
