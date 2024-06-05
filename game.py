@@ -2,6 +2,7 @@
 
 import pygame as pg
 from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, FPS
+from background import GameBackground
 
 
 class Game:
@@ -18,6 +19,8 @@ class Game:
         pg.display.set_icon(icon)
         pg.display.set_caption("Fly RUSH!")
 
+        self.game_background: GameBackground = GameBackground()  # Class to move and draw game background
+
         self.clock = pg.time.Clock()
 
     def handle_events(self) -> None:
@@ -30,11 +33,15 @@ class Game:
 
     def update_screen(self) -> None:
         """Method which draws all objects in game etc"""
+        self.game_background.draw_background(self.screen)
         pg.display.update()
 
     def execute(self) -> None:
         """Method to keep game running and update everything in game"""
         while True:
             self.handle_events()
+
+            self.game_background.move_background()
+
             self.update_screen()
             self.clock.tick(FPS)
