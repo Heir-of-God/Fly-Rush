@@ -6,3 +6,6 @@ FPS: int = 60
 # Window sizes
 GAME_SCREEN_WIDTH: int = 1413
 GAME_SCREEN_HEIGHT: int = 768
+
+# Game background
+BACKGROUND_SPEED = 2  # px per frame
