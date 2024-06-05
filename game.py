@@ -3,6 +3,7 @@
 import pygame as pg
 from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, FPS
 from background import GameBackground
+from planes import PlayerPlane
 
 
 class Game:
@@ -21,6 +22,8 @@ class Game:
 
         self.game_background: GameBackground = GameBackground()  # Class to move and draw game background
 
+        self.player_group = pg.sprite.GroupSingle(PlayerPlane())  # Class to control the player
+
         self.clock = pg.time.Clock()
 
     def handle_events(self) -> None:
@@ -34,6 +37,7 @@ class Game:
     def update_screen(self) -> None:
         """Method which draws all objects in game etc"""
         self.game_background.draw_background(self.screen)
+        self.player_group.draw(self.screen)
         pg.display.update()
 
     def execute(self) -> None:
@@ -42,6 +46,7 @@ class Game:
             self.handle_events()
 
             self.game_background.move_background()
+            self.player_group.update()
 
             self.update_screen()
             self.clock.tick(FPS)
