@@ -22,8 +22,8 @@ class Plane(pg.sprite.Sprite):
 
     def create_collide_rect(self) -> None:
         """Create collide rect for plane based on its type (there's two types: 1 (smaller) and 2 (bigger). Player's plane always type 1)"""
-        self.collide_rect = self.rect.copy()
-        y_scale = 0.62 if self.type == 1 else 0.75
+        self.collide_rect: pg.Rect = self.rect.copy()
+        y_scale: float = 0.62 if self.type == 1 else 0.75
         self.collide_rect.scale_by_ip(0.70, y_scale)
 
     def bullet_reload(self) -> None:
@@ -34,6 +34,12 @@ class Plane(pg.sprite.Sprite):
         self.collide_rect.center = self.rect.centerx, self.rect.centery + (
             self.rect.width * 0.08 if self.type == 1 else self.rect.width * 0.04
         )
+
+    def set_reload_time(self, val: int) -> None:
+        self.reload_time: int = val
+
+    def can_shoot(self) -> bool:
+        return self.reload_time == 0
 
 
 class PlayerPlane(Plane):
@@ -57,6 +63,10 @@ class PlayerPlane(Plane):
         if keys[pg.K_a]:
             self.rect.left = max(self.rect.left - PLAYER_SPEED_X_LEFT, 0)
         self.update_collide_rect()
+
+    def get_bullet_position(self) -> tuple[int, int]:
+        """Returns position for bullet to appear (left bound for x and center for y)"""
+        return (self.collide_rect.right, self.collide_rect.centery)
 
     def update(self) -> None:
         self.bullet_reload()
