@@ -106,3 +106,7 @@ class EnemyPlane(Plane):
                 elif self.rect.top <= self.start_coor_y_top - self.pos_y_delta:
                     self.speed_y *= -1
         self.update_collide_rect()
+
+    def update(self) -> None:
+        self.bullet_reload()
+        self.move()
