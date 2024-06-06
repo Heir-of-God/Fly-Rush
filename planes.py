@@ -1,6 +1,6 @@
 """Module which contains classes for player's plane, enemies' planes and base class for them"""
 
-from random import choice
+from random import choice, randint
 import pygame as pg
 from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, PLAYER_SPEED_X_RIGHT, PLAYER_SPEED_X_LEFT, PLAYER_SPEED_Y
 
@@ -49,3 +49,23 @@ class PlayerPlane(Plane):
     def update(self) -> None:
         self.bullet_reload()
         self.handle_player_input()
+
+
+class EnemyPlane(Plane):
+    def __init__(self) -> None:
+        super().__init__()
+        self.type: int = randint(1, 2)
+        self.image: pg.Surface = pg.transform.rotozoom(
+            pg.image.load(f"assets/graphics/planes/{choice(['red', 'blue', 'green', 'yellow'])}{self.type}.png"),
+            0,
+            0.15,
+        ).convert_alpha()
+        self.image_width: int = self.image.get_width()
+        self.rect: pg.Rect = self.image.get_rect(
+            topleft=(
+                randint(GAME_SCREEN_WIDTH, GAME_SCREEN_WIDTH + self.image_width * 3),
+                randint(0, GAME_SCREEN_HEIGHT - self.image.get_height()),
+            )
+        )
+        self.right_target_x: int = randint(GAME_SCREEN_WIDTH - self.image_width * 3, GAME_SCREEN_WIDTH)
+        self.create_collide_rect()
