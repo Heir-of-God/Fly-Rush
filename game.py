@@ -37,7 +37,7 @@ class Game:
     def update_screen(self) -> None:
         """Method which draws all objects in game etc"""
         self.game_background.draw_background(self.screen)
-        self.player_group.sprite.draw(self.screen)  # TEMPORARY CHANGED TO SET UP COLLIDE RECTANGLE
+        self.player_group.draw(self.screen)
         pg.display.update()
 
     def execute(self) -> None:

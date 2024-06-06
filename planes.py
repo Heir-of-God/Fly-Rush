@@ -9,26 +9,17 @@ class Plane(pg.sprite.Sprite):
     def __init__(self) -> None:
         super().__init__()
         self.reload_time = 0
+        self.type = 1
 
-    def create_collide_rect(self):
+    def create_collide_rect(self) -> None:
+        """Create collide rect for plane based on its type (there's two types: 1 (smaller) and 2 (bigger). Player's plane always type 1)"""
         self.collide_rect = self.rect.copy()
-        self.collide_rect.scale_by_ip(0.75, 0.6)
+        y_scale = 0.62 if self.type == 1 else 0.75
+        self.collide_rect.scale_by_ip(0.70, y_scale)
 
     def bullet_reload(self) -> None:
         if self.reload_time != 0:
             self.reload_time -= 1
-
-    def check_left_border(self) -> bool:
-        return self.rect.left >= 0
-
-    def check_right_border(self) -> bool:
-        return self.rect.right <= GAME_SCREEN_WIDTH
-
-    def check_top_border(self) -> bool:
-        return self.rect.top >= 0
-
-    def check_bottom_border(self) -> bool:
-        return self.rect.bottom <= GAME_SCREEN_HEIGHT
 
 
 class PlayerPlane(Plane):
@@ -51,13 +42,10 @@ class PlayerPlane(Plane):
             self.rect.right = min(self.rect.right + PLAYER_SPEED_X_RIGHT, GAME_SCREEN_WIDTH)
         if keys[pg.K_a]:
             self.rect.left = max(self.rect.left - PLAYER_SPEED_X_LEFT, 0)
-        self.collide_rect.center = self.rect.centerx, self.rect.centery + 10
+        self.collide_rect.center = self.rect.centerx, self.rect.centery + (
+            self.rect.width * 0.08 if self.type == 1 else self.rect.width * 0.04
+        )
 
-    def update(self):
+    def update(self) -> None:
         self.bullet_reload()
         self.handle_player_input()
-
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-        pg.draw.rect(screen, (255, 0, 0), self.collide_rect)
-        # TODO remove line above, just to test collide rectangles
