@@ -11,6 +11,7 @@ from constants import (
     ENEMY_SPEED_X,
     ENEMY_SPEED_Y,
     ENEMY_DELTA_Y,
+    ENEMY_RELOAD_RANGE,
 )
 
 
@@ -116,6 +117,18 @@ class EnemyPlane(Plane):
                 elif self.rect.top <= self.start_coor_y_top - self.pos_y_delta:
                     self.speed_y *= -1
         self.update_collide_rect()
+
+    def update_reload_time(self) -> None:
+        self.set_reload_time(randint(ENEMY_RELOAD_RANGE[0], ENEMY_RELOAD_RANGE[1]))
+
+    def get_bullet_position(self) -> tuple[int, int]:
+        """Returns position for bullet to appear (right bound for x and center for y)"""
+        return (self.collide_rect.left, self.collide_rect.centery)
+
+    def can_shoot(self) -> bool:
+        return (
+            super().can_shoot() and self.rect.right <= self.right_target_x
+        )  # if there's no reload time and plane's reached its target
 
     def update(self) -> None:
         self.bullet_reload()

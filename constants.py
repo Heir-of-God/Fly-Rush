@@ -22,3 +22,4 @@ ENEMY_SPEED_X = 5  # px per frame
 ENEMY_SPEED_Y = 1  # px per frame
 ENEMY_DELTA_Y: tuple[int, int] = (90, 280)  # (minimum, maximum) delta y on which enemy's plane can deviate
 ENEMY_BULLET_SPEED: int = 12  # px per frame
+ENEMY_RELOAD_RANGE: tuple[int, int] = (90, 180)  # (minimum, maximum) frames until EnemyPlane can shoot again
