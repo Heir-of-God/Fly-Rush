@@ -41,7 +41,7 @@ class Game:
     def set_timers(self) -> None:
         pg.time.set_timer(self.enemy_spawn_event, 1500)
 
-    def load_graphics(self):
+    def load_graphics(self) -> None:
         PlayerBullet.load_graphics()
         EnemyBullet.load_graphics()
 

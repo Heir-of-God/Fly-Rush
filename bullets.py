@@ -5,12 +5,14 @@ from constants import PLAYER_BULLET_SPEED, ENEMY_BULLET_SPEED, GAME_SCREEN_WIDTH
 
 
 class Bullet(pg.sprite.Sprite):
+    """Base Bullet class for inheritance (PlayerBullet and EnemyBullet)"""
+
     def __init__(self) -> None:
         super().__init__()
 
     def create_collide_rect(self) -> None:
         self.collide_rect: pg.Rect = self.rect.copy()
-        self.collide_rect.inflate_ip(-10, -5)
+        self.collide_rect.inflate_ip(-10, -5)  # (hardcoded)
 
     def update_collide_rect(self) -> None:
         self.collide_rect.center = self.rect.center
@@ -30,6 +32,8 @@ class Bullet(pg.sprite.Sprite):
 
 
 class PlayerBullet(Bullet):
+    """Class for player's bullet"""
+
     def __init__(self, start_x: int, start_y: int) -> None:
         super().__init__()
         self.image: pg.Surface = self.images[0]
@@ -48,6 +52,8 @@ class PlayerBullet(Bullet):
 
 
 class EnemyBullet(Bullet):
+    """Class for enemy's bullet"""
+
     def __init__(self, start_x: int, start_y: int) -> None:
         super().__init__()
 

@@ -16,6 +16,8 @@ from constants import (
 
 
 class Plane(pg.sprite.Sprite):
+    """Base class for inheritance (PlayerPlane and EnemyPlane)"""
+
     def __init__(self) -> None:
         super().__init__()
         self.reload_time = 0
@@ -28,6 +30,7 @@ class Plane(pg.sprite.Sprite):
         self.collide_rect.scale_by_ip(0.70, y_scale)
 
     def bullet_reload(self) -> None:
+        """Updating reload time for plane every frame if it's not 0"""
         if self.reload_time != 0:
             self.reload_time -= 1
 
@@ -44,6 +47,8 @@ class Plane(pg.sprite.Sprite):
 
 
 class PlayerPlane(Plane):
+    """Class player's plane (input handling)"""
+
     def __init__(self) -> None:
         super().__init__()
         self.image: pg.Surface = pg.transform.rotozoom(
@@ -92,7 +97,7 @@ class EnemyPlane(Plane):
             )
         )
         self.right_target_x: int = randint(GAME_SCREEN_WIDTH - self.image_width * 3, GAME_SCREEN_WIDTH)
-        self.speed_y: int = choice([ENEMY_SPEED_Y, -ENEMY_SPEED_Y])
+        self.speed_y: int = choice([ENEMY_SPEED_Y, -ENEMY_SPEED_Y])  # randomly go from start to bottom or to the top
         self.pos_y_delta: int = randint(ENEMY_DELTA_Y[0], ENEMY_DELTA_Y[1])
         self.start_coor_y_top: int = self.rect.top
         self.create_collide_rect()
