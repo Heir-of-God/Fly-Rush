@@ -16,9 +16,24 @@ PLAYER_SPEED_X_RIGHT: int = 10  # px per frame
 PLAYER_SPEED_X_LEFT: int = 7  # px per frame
 PLAYER_BULLET_SPEED: int = 12  # px per frame
 PLAYER_RELOAD_TIME: int = 25  # frames to reload
+PLAYER_START_X: int = 706.5  # start player position on x axis
+PLAYER_START_y: int = 384  # start player pisutuib on y axis
 
 # Enemies
 ENEMY_SPEED_X = 5  # px per frame
 ENEMY_SPEED_Y = 1  # px per frame
 ENEMY_DELTA_Y: tuple[int, int] = (90, 280)  # (minimum, maximum) delta y on which enemy's plane can deviate
 ENEMY_BULLET_SPEED: int = 12  # px per frame
+ENEMY_RELOAD_RANGE: tuple[int, int] = (90, 180)  # (minimum, maximum) frames until EnemyPlane can shoot again
+
+# Explosions
+PLANE_EXPLOSION_SIZE_COEFFICIENT: float = 0.35  # value which set the size of explosion animation
+
+# # Coins
+# BRONZE_COINS_NUMBER: int = 0 #descrive these constants
+# SILVER_COINS_NUMBER: int = 0
+# GOLD_COINS_NUMBER: int = 0
+
+# BRONZE_COIN_VALUE: int = 1
+# SILVER_COIN_VALUE: int = 3
+# GOLD_COIN_VALUE: int = 5

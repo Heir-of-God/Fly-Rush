@@ -8,13 +8,18 @@ from constants import (
     PLAYER_SPEED_X_RIGHT,
     PLAYER_SPEED_X_LEFT,
     PLAYER_SPEED_Y,
+    PLAYER_START_X,
+    PLAYER_START_y,
     ENEMY_SPEED_X,
     ENEMY_SPEED_Y,
     ENEMY_DELTA_Y,
+    ENEMY_RELOAD_RANGE,
 )
 
 
 class Plane(pg.sprite.Sprite):
+    """Base class for inheritance (PlayerPlane and EnemyPlane)"""
+
     def __init__(self) -> None:
         super().__init__()
         self.reload_time = 0
@@ -27,6 +32,7 @@ class Plane(pg.sprite.Sprite):
         self.collide_rect.scale_by_ip(0.70, y_scale)
 
     def bullet_reload(self) -> None:
+        """Updating reload time for plane every frame if it's not 0"""
         if self.reload_time != 0:
             self.reload_time -= 1
 
@@ -38,18 +44,28 @@ class Plane(pg.sprite.Sprite):
     def set_reload_time(self, val: int) -> None:
         self.reload_time: int = val
 
+    def get_rects_center(self) -> tuple[int, int]:
+        """Returns collide rect's center (x, y) as tuple"""
+        return self.collide_rect.center
+
     def can_shoot(self) -> bool:
         return self.reload_time == 0
 
 
 class PlayerPlane(Plane):
+    """Class player's plane (input handling)"""
+
     def __init__(self) -> None:
         super().__init__()
         self.image: pg.Surface = pg.transform.rotozoom(
             pg.image.load(f"assets/graphics/planes/{choice(['red', 'blue', 'green', 'yellow'])}1.png"), 0, 0.15
         ).convert_alpha()
-        self.rect: pg.Rect = self.image.get_rect(center=(706.5, 384))
+        self.rect: pg.Rect = self.image.get_rect()
+        self.reset_position()
         self.create_collide_rect()
+
+    def reset_position(self) -> None:
+        self.rect.center = (PLAYER_START_X, PLAYER_START_y)
 
     def handle_player_input(self) -> None:
         keys: pg.key.ScancodeWrapper = pg.key.get_pressed()
@@ -91,7 +107,7 @@ class EnemyPlane(Plane):
             )
         )
         self.right_target_x: int = randint(GAME_SCREEN_WIDTH - self.image_width * 3, GAME_SCREEN_WIDTH)
-        self.speed_y: int = choice([ENEMY_SPEED_Y, -ENEMY_SPEED_Y])
+        self.speed_y: int = choice([ENEMY_SPEED_Y, -ENEMY_SPEED_Y])  # randomly go from start to bottom or to the top
         self.pos_y_delta: int = randint(ENEMY_DELTA_Y[0], ENEMY_DELTA_Y[1])
         self.start_coor_y_top: int = self.rect.top
         self.create_collide_rect()
@@ -116,6 +132,18 @@ class EnemyPlane(Plane):
                 elif self.rect.top <= self.start_coor_y_top - self.pos_y_delta:
                     self.speed_y *= -1
         self.update_collide_rect()
+
+    def update_reload_time(self) -> None:
+        self.set_reload_time(randint(ENEMY_RELOAD_RANGE[0], ENEMY_RELOAD_RANGE[1]))
+
+    def get_bullet_position(self) -> tuple[int, int]:
+        """Returns position for bullet to appear (right bound for x and center for y)"""
+        return (self.collide_rect.left, self.collide_rect.centery)
+
+    def can_shoot(self) -> bool:
+        return (
+            super().can_shoot() and self.rect.right <= self.right_target_x
+        )  # if there's no reload time and plane's reached its target
 
     def update(self) -> None:
         self.bullet_reload()
