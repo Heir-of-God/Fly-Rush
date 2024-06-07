@@ -45,6 +45,13 @@ class Game:
         PlayerBullet.load_graphics()
         EnemyBullet.load_graphics()
 
+    def reset_game(self) -> None:
+        self.enemies_bullets_group.empty()
+        self.enemies_group.empty()
+        self.player_bullets_group.empty()
+        self.player_group.sprite.reset_position()
+        self.set_timers()
+
     def handle_events(self) -> None:
         """Method to handle all events in the game"""
         events: list[pg.event.Event] = pg.event.get()

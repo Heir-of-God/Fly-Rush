@@ -8,6 +8,8 @@ from constants import (
     PLAYER_SPEED_X_RIGHT,
     PLAYER_SPEED_X_LEFT,
     PLAYER_SPEED_Y,
+    PLAYER_START_X,
+    PLAYER_START_y,
     ENEMY_SPEED_X,
     ENEMY_SPEED_Y,
     ENEMY_DELTA_Y,
@@ -42,6 +44,10 @@ class Plane(pg.sprite.Sprite):
     def set_reload_time(self, val: int) -> None:
         self.reload_time: int = val
 
+    def get_rects_center(self) -> tuple[int, int]:
+        """Returns collide rect's center (x, y) as tuple"""
+        return self.collide_rect.center
+
     def can_shoot(self) -> bool:
         return self.reload_time == 0
 
@@ -54,8 +60,12 @@ class PlayerPlane(Plane):
         self.image: pg.Surface = pg.transform.rotozoom(
             pg.image.load(f"assets/graphics/planes/{choice(['red', 'blue', 'green', 'yellow'])}1.png"), 0, 0.15
         ).convert_alpha()
-        self.rect: pg.Rect = self.image.get_rect(center=(706.5, 384))
+        self.rect: pg.Rect = self.image.get_rect()
+        self.reset_position()
         self.create_collide_rect()
+
+    def reset_position(self) -> None:
+        self.rect.center = (PLAYER_START_X, PLAYER_START_y)
 
     def handle_player_input(self) -> None:
         keys: pg.key.ScancodeWrapper = pg.key.get_pressed()
