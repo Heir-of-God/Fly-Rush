@@ -2,8 +2,9 @@
 
 from random import randint
 import pygame as pg
-from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, FPS, PLAYER_RELOAD_TIME
+from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, FPS, PLAYER_RELOAD_TIME, PLANE_EXPLOSION_SIZE_COEFFICIENT
 from background import GameBackground
+from explosion import Explosion
 from planes import PlayerPlane, EnemyPlane
 from bullets import PlayerBullet, EnemyBullet
 
@@ -31,7 +32,9 @@ class Game:
         self.player_bullets_group = pg.sprite.Group()  # Class to control player's bullets
 
         self.enemies_group = pg.sprite.Group()  # Class to control enemies
-        self.enemies_bullets_group = pg.sprite.Group()
+        self.enemies_bullets_group = pg.sprite.Group()  # Control all enemies' bullets
+
+        self.explosion_group = pg.sprite.Group()  # Control all explosions
 
         self.enemy_spawn_event: int = pg.USEREVENT + 1
 
@@ -44,11 +47,13 @@ class Game:
     def load_graphics(self) -> None:
         PlayerBullet.load_graphics()
         EnemyBullet.load_graphics()
+        Explosion.load_graphics()
 
     def reset_game(self) -> None:
         self.enemies_bullets_group.empty()
         self.enemies_group.empty()
         self.player_bullets_group.empty()
+        self.explosion_group.empty()
         self.player_group.sprite.reset_position()
         self.set_timers()
 
@@ -89,6 +94,7 @@ class Game:
             )  # get list of enemies which collide with bullet
             if killed_enemies:
                 killed: EnemyPlane = killed_enemies[0]
+                self.explosion_group.add(Explosion(killed.get_rects_center(), PLANE_EXPLOSION_SIZE_COEFFICIENT))
                 killed.kill()
                 player_bullet.kill()
 
@@ -99,6 +105,7 @@ class Game:
         self.enemies_bullets_group.draw(self.screen)
         self.player_group.draw(self.screen)
         self.enemies_group.draw(self.screen)
+        self.explosion_group.draw(self.screen)
         pg.display.update()
 
     def update_game(self) -> None:
@@ -108,6 +115,7 @@ class Game:
         self.enemies_group.update()
         self.player_bullets_group.update()
         self.enemies_bullets_group.update()
+        self.explosion_group.update()
         self.check_collisions()
 
     def execute(self) -> None:
