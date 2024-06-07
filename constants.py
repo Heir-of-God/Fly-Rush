@@ -28,3 +28,12 @@ ENEMY_RELOAD_RANGE: tuple[int, int] = (90, 180)  # (minimum, maximum) frames unt
 
 # Explosions
 PLANE_EXPLOSION_SIZE_COEFFICIENT: float = 0.35  # value which set the size of explosion animation
+
+# # Coins
+# BRONZE_COINS_NUMBER: int = 0 #descrive these constants
+# SILVER_COINS_NUMBER: int = 0
+# GOLD_COINS_NUMBER: int = 0
+
+# BRONZE_COIN_VALUE: int = 1
+# SILVER_COIN_VALUE: int = 3
+# GOLD_COIN_VALUE: int = 5
