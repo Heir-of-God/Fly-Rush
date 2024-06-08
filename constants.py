@@ -42,3 +42,9 @@ GOLD_COIN_VALUE: int = 5
 
 COINS_SPEED_Y: int = 7  # px per frame
 COINS_SPEED_X: int = 4  # px_per_frame
+
+
+# Score stars
+SCORE_STAR_ANGLE_SPEED: int = 3  # degrees per frame
+SCORE_STAR_VALUE_RANGE: tuple[int, int] = (80, 150)  # (minimum, maximum) value star will give to player
+SCORE_STAR_SPEED_X: int = 10  # px per frame

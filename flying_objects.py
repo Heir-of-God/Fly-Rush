@@ -14,6 +14,9 @@ from constants import (
     FPS,
     COINS_SPEED_Y,
     COINS_SPEED_X,
+    SCORE_STAR_ANGLE_SPEED,
+    SCORE_STAR_VALUE_RANGE,
+    SCORE_STAR_SPEED_X,
 )
 
 
@@ -26,6 +29,18 @@ class FlyingObject(pg.sprite.Sprite):
     def check_right_board(self) -> None:
         if self.rect.right <= 0:
             self.kill()
+
+    def set_up_rects(self) -> None:
+        self.rect: pg.Rect = self.image.get_rect(
+            topleft=(
+                GAME_SCREEN_WIDTH,
+                randint(0, GAME_SCREEN_HEIGHT - self.image.get_height()),
+            )
+        )
+        self.create_collide_rect()
+
+    def update_collide_rect(self) -> None:
+        self.collide_rect.center = self.rect.center
 
 
 class Coin(FlyingObject):
@@ -51,13 +66,7 @@ class Coin(FlyingObject):
         self.images: list[pg.Surface] = self.images[self.coin_type]
         self.current_animation_step: int = 0
         self.image: pg.Surface = self.images[0]
-        self.rect: pg.Rect = self.image.get_rect(
-            topleft=(
-                GAME_SCREEN_WIDTH,
-                randint(0, GAME_SCREEN_HEIGHT - self.image.get_height()),
-            )
-        )
-        self.create_collide_rect()
+        self.set_up_rects()
 
     def animation(self) -> None:
         self.current_animation_step += 15 / (FPS * 0.5)  # Two full animations in 1 second
@@ -78,12 +87,45 @@ class Coin(FlyingObject):
             self.rect.x -= COINS_SPEED_X
         self.update_collide_rect()
 
-    def update_collide_rect(self) -> None:
-        self.collide_rect.center = self.rect.center
-
     def get_value(self) -> int:
         return self.values[self.coin_type]
 
-    def update(self):
+    def update(self) -> None:
         self.animation()
         self.move()
+
+
+class ScoreStar(FlyingObject):
+
+    @classmethod
+    def load_graphics(cls) -> None:
+        cls.images: list[pg.Surface] = [
+            pg.transform.rotozoom(
+                pg.image.load("assets/graphics/flying_objects/score_star/star.png"), 0, 0.25
+            ).convert_alpha()
+        ]
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.image: pg.Surface = self.images[0]
+        self.start_image: pg.Surface = self.image  # Saving start image to then rotate it
+        self.current_angle = 0
+        self.angle_speed: int = choice([SCORE_STAR_ANGLE_SPEED, -SCORE_STAR_ANGLE_SPEED])
+        self.value: int = randint(SCORE_STAR_VALUE_RANGE[0], SCORE_STAR_VALUE_RANGE[1])
+        self.set_up_rects()
+
+    def create_collide_rect(self) -> None:
+        self.collide_rect: pg.Rect = self.rect.copy()
+
+    def move(self) -> None:
+        self.rect.x -= SCORE_STAR_SPEED_X
+
+    def animation(self) -> None:
+        self.image = pg.transform.rotate(self.start_image, self.current_angle)
+        self.current_angle += self.angle_speed
+        self.rect = self.image.get_rect(center=self.rect.center)
+
+    def update(self) -> None:
+        self.animation()
+        self.move()
+        self.update_collide_rect()
