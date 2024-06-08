@@ -29,11 +29,16 @@ ENEMY_RELOAD_RANGE: tuple[int, int] = (90, 180)  # (minimum, maximum) frames unt
 # Explosions
 PLANE_EXPLOSION_SIZE_COEFFICIENT: float = 0.35  # value which set the size of explosion animation
 
-# # Coins
-# BRONZE_COINS_NUMBER: int = 0 #descrive these constants
-# SILVER_COINS_NUMBER: int = 0
-# GOLD_COINS_NUMBER: int = 0
+# Coins
+# For coin there's (NUMBER OF THIS COIN) / (SUM OF ALL NUMBERS) chance that this coin will be spawned
+BRONZE_COINS_NUMBER: int = 6
+SILVER_COINS_NUMBER: int = 4
+GOLD_COINS_NUMBER: int = 2
 
-# BRONZE_COIN_VALUE: int = 1
-# SILVER_COIN_VALUE: int = 3
-# GOLD_COIN_VALUE: int = 5
+# How many coins player will receive when collect this type of coin
+BRONZE_COIN_VALUE: int = 1
+SILVER_COIN_VALUE: int = 3
+GOLD_COIN_VALUE: int = 5
+
+COINS_SPEED_Y: int = 7  # px per frame
+COINS_SPEED_X: int = 4  # px_per_frame
