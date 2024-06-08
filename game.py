@@ -7,6 +7,7 @@ from background import GameBackground
 from explosion import Explosion
 from planes import PlayerPlane, EnemyPlane
 from bullets import PlayerBullet, EnemyBullet
+from flying_objects import Coin, ScoreStar
 
 
 class Game:
@@ -36,24 +37,35 @@ class Game:
 
         self.explosion_group = pg.sprite.Group()  # Control all explosions
 
+        self.coins_group = pg.sprite.Group()  # Controll all coins
+        self.score_stars_group = pg.sprite.Group()  # Controll all score stars
+
         self.enemy_spawn_event: int = pg.USEREVENT + 1
+        self.coin_spawn_event: int = pg.USEREVENT + 2
+        self.star_spawn_event: int = pg.USEREVENT + 3
 
         self.set_timers()
         self.clock = pg.time.Clock()
 
     def set_timers(self) -> None:
         pg.time.set_timer(self.enemy_spawn_event, 1500)
+        pg.time.set_timer(self.coin_spawn_event, 6000)
+        pg.time.set_timer(self.star_spawn_event, 6000)
 
     def load_graphics(self) -> None:
         PlayerBullet.load_graphics()
         EnemyBullet.load_graphics()
         Explosion.load_graphics()
+        Coin.load_graphics()
+        ScoreStar.load_graphics()
 
     def reset_game(self) -> None:
         self.enemies_bullets_group.empty()
         self.enemies_group.empty()
         self.player_bullets_group.empty()
         self.explosion_group.empty()
+        self.coins_group.empty()
+        self.score_stars_group.empty()
         self.player_group.sprite.reset_position()
         self.set_timers()
 
@@ -72,6 +84,14 @@ class Game:
                 if randint(0, 3):
                     if len(self.enemies_group) < 16:
                         self.enemies_group.add(EnemyPlane())
+
+            elif event.type == self.coin_spawn_event:
+                if randint(1, 3):  # Now spawning always. TODO (TOCHANGE)
+                    self.coins_group.add(Coin())
+
+            elif event.type == self.star_spawn_event:
+                if randint(1, 2):
+                    self.score_stars_group.add(ScoreStar())
 
         # handle keys
         if keys[pg.K_SPACE] and self.player_group.sprite.can_shoot():
@@ -103,6 +123,8 @@ class Game:
         self.game_background.draw_background(self.screen)
         self.player_bullets_group.draw(self.screen)
         self.enemies_bullets_group.draw(self.screen)
+        self.coins_group.draw(self.screen)
+        self.score_stars_group.draw(self.screen)
         self.player_group.draw(self.screen)
         self.enemies_group.draw(self.screen)
         self.explosion_group.draw(self.screen)
@@ -113,6 +135,8 @@ class Game:
         self.game_background.move_background()
         self.player_group.update()
         self.enemies_group.update()
+        self.coins_group.update()
+        self.score_stars_group.update()
         self.player_bullets_group.update()
         self.enemies_bullets_group.update()
         self.explosion_group.update()
