@@ -19,6 +19,7 @@ from constants import (
     SCORE_STAR_SPEED_X,
     FLYING_HEART_DELTA_Y,
     FLYING_HEART_SPEED_Y,
+    FLYING_HEART_SPEED_X,
 )
 
 
@@ -46,6 +47,12 @@ class FlyingObject(pg.sprite.Sprite):
 
     def update_collide_rect(self) -> None:
         self.collide_rect.center = self.rect.center
+
+    def update(self) -> None:
+        self.animation()
+        self.move()
+        self.update_collide_rect()
+        self.check_right_board()
 
 
 class Coin(FlyingObject):
@@ -95,10 +102,6 @@ class Coin(FlyingObject):
     def get_value(self) -> int:
         return self.values[self.coin_type]
 
-    def update(self) -> None:
-        self.animation()
-        self.move()
-
 
 class ScoreStar(FlyingObject):
 
@@ -127,11 +130,6 @@ class ScoreStar(FlyingObject):
         self.current_angle += self.angle_speed
         self.rect = self.image.get_rect(center=self.rect.center)
 
-    def update(self) -> None:
-        self.animation()
-        self.move()
-        self.update_collide_rect()
-
 
 class FlyingHeart(FlyingObject):
 
@@ -149,14 +147,39 @@ class FlyingHeart(FlyingObject):
         self.image: pg.Surface = self.images[0]
         self.current_animation_step: int = 0
         self.set_up_rects()
-        self.start_coor_y_center = self.rect.centery
+        self.start_coor_y_center: int = self.rect.centery
         self.pos_y_delta: int = randint(FLYING_HEART_DELTA_Y[0], FLYING_HEART_DELTA_Y[1])
         self.speed_y: int = choice(
             [FLYING_HEART_SPEED_Y, -FLYING_HEART_SPEED_Y]
         )  # randomly go from start to bottom or to the top
+        self.teleported = False  # hearts "teleport" to random y when reach half of the screen
 
     def animation(self) -> None:
         self.current_animation_step += 1
         if self.current_animation_step > 74:  # 75 // 15 = 5 -> last index is 4 because there's 5 heart's images
             self.current_animation_step = 0
         self.image = self.images[self.current_animation_step // 15]
+
+    def move(self) -> None:
+        self.rect.x -= FLYING_HEART_SPEED_X
+        self.rect.y += self.speed_y
+        if self.speed_y > 0:  # heart is going down
+            if self.rect.bottom >= GAME_SCREEN_HEIGHT:
+                self.rect.bottom = GAME_SCREEN_HEIGHT
+                self.speed_y *= -1
+            elif self.rect.center >= self.start_coor_y_center + self.pos_y_delta:
+                self.speed_y *= -1
+
+        else:  # heart is going up
+            if self.rect.top <= 0:
+                self.rect.top = 0
+                self.speed_y *= -1
+            elif self.rect.center <= self.start_coor_y_center - self.pos_y_delta:
+                self.speed_y *= -1
+
+        # apply teleportation
+        if not self.teleported and self.rect.centerx <= GAME_SCREEN_WIDTH // 2:
+            self.teleported = True
+            self.rect.y += randint(-80, 80)
+            self.rect.x -= randint(80, 250)
+            self.speed_y *= -1

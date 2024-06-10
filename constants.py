@@ -52,3 +52,4 @@ SCORE_STAR_SPEED_X: int = 10  # px per frame
 # Flying hearts
 FLYING_HEART_DELTA_Y: tuple[int, int] = (120, 180)  # (minimum, maximum) delta y on which flying heart can deviate
 FLYING_HEART_SPEED_Y: int = 2  # px per frame
+FLYING_HEART_SPEED_X: int = 4  # px per frame
