@@ -129,6 +129,9 @@ class ScoreStar(FlyingObject):
         self.current_angle += self.angle_speed
         self.rect = self.image.get_rect(center=self.rect.center)
 
+    def get_value(self) -> int:
+        return self.value
+
 
 class FlyingHeart(FlyingObject):
 

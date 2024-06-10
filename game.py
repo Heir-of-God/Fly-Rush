@@ -31,6 +31,8 @@ class Game:
 
         self.player_group = pg.sprite.GroupSingle(PlayerPlane())  # Class to control the player
         self.player_bullets_group = pg.sprite.Group()  # Class to control player's bullets
+        self.player_score: int = 0
+        self.player_coins: int = 0
 
         self.enemies_group = pg.sprite.Group()  # Class to control enemies
         self.enemies_bullets_group = pg.sprite.Group()  # Control all enemies' bullets
@@ -72,6 +74,10 @@ class Game:
         self.score_stars_group.empty()
         self.flying_hearts_group.empty()
         self.player_group.sprite.reset_position()
+
+        self.player_coins = 0
+        self.player_score = 0
+
         self.set_timers()
 
     def handle_events(self) -> None:
@@ -126,6 +132,36 @@ class Game:
                 self.explosion_group.add(Explosion(killed.get_rects_center(), PLANE_EXPLOSION_SIZE_COEFFICIENT))
                 killed.kill()
                 player_bullet.kill()
+
+        if pg.sprite.groupcollide(
+            self.player_group,
+            self.enemies_bullets_group,
+            False,
+            False,
+            lambda pl, bull: pl.collide_rect.colliderect(bull.collide_rect),
+        ):
+            self.reset_game()
+
+        collected_coins: list[Coin] = pg.sprite.spritecollide(
+            self.player_group.sprite,
+            self.coins_group,
+            False,
+            lambda pl, coin: pl.collide_rect.colliderect(coin.collide_rect),
+        )
+        for coin in collected_coins:
+            coin.kill()
+            self.player_coins += coin.get_value()
+
+        collected_stars: list[ScoreStar] = pg.sprite.spritecollide(
+            self.player_group.sprite,
+            self.score_stars_group,
+            False,
+            lambda pl, star: pl.collide_rect.colliderect(star.collide_rect),
+        )
+        for star in collected_stars:
+            star.kill()
+            self.player_score += star.get_value()
+            print(self.player_score)
 
     def draw_screen(self) -> None:
         """Method which draws all objects in game etc"""
