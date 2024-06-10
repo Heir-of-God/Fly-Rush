@@ -7,7 +7,7 @@ from background import GameBackground
 from explosion import Explosion
 from planes import PlayerPlane, EnemyPlane
 from bullets import PlayerBullet, EnemyBullet
-from flying_objects import Coin, ScoreStar
+from flying_objects import Coin, ScoreStar, FlyingHeart
 
 
 class Game:
@@ -31,6 +31,8 @@ class Game:
 
         self.player_group = pg.sprite.GroupSingle(PlayerPlane())  # Class to control the player
         self.player_bullets_group = pg.sprite.Group()  # Class to control player's bullets
+        self.player_score: int = 0
+        self.player_coins: int = 0
 
         self.enemies_group = pg.sprite.Group()  # Class to control enemies
         self.enemies_bullets_group = pg.sprite.Group()  # Control all enemies' bullets
@@ -39,10 +41,12 @@ class Game:
 
         self.coins_group = pg.sprite.Group()  # Controll all coins
         self.score_stars_group = pg.sprite.Group()  # Controll all score stars
+        self.flying_hearts_group = pg.sprite.Group()  # Controll all flying hearts
 
         self.enemy_spawn_event: int = pg.USEREVENT + 1
         self.coin_spawn_event: int = pg.USEREVENT + 2
         self.star_spawn_event: int = pg.USEREVENT + 3
+        self.flying_heart_spawn_event: int = pg.USEREVENT + 4
 
         self.set_timers()
         self.clock = pg.time.Clock()
@@ -51,6 +55,7 @@ class Game:
         pg.time.set_timer(self.enemy_spawn_event, 1500)
         pg.time.set_timer(self.coin_spawn_event, 6000)
         pg.time.set_timer(self.star_spawn_event, 6000)
+        pg.time.set_timer(self.flying_heart_spawn_event, 8000)
 
     def load_graphics(self) -> None:
         PlayerBullet.load_graphics()
@@ -58,6 +63,7 @@ class Game:
         Explosion.load_graphics()
         Coin.load_graphics()
         ScoreStar.load_graphics()
+        FlyingHeart.load_graphics()
 
     def reset_game(self) -> None:
         self.enemies_bullets_group.empty()
@@ -66,7 +72,12 @@ class Game:
         self.explosion_group.empty()
         self.coins_group.empty()
         self.score_stars_group.empty()
+        self.flying_hearts_group.empty()
         self.player_group.sprite.reset_position()
+
+        self.player_coins = 0
+        self.player_score = 0
+
         self.set_timers()
 
     def handle_events(self) -> None:
@@ -93,6 +104,10 @@ class Game:
                 if randint(1, 2):
                     self.score_stars_group.add(ScoreStar())
 
+            elif event.type == self.flying_heart_spawn_event:
+                if randint(1, 2):
+                    self.flying_hearts_group.add(FlyingHeart())
+
         # handle keys
         if keys[pg.K_SPACE] and self.player_group.sprite.can_shoot():
             self.player_group.sprite.set_reload_time(PLAYER_RELOAD_TIME)
@@ -118,6 +133,36 @@ class Game:
                 killed.kill()
                 player_bullet.kill()
 
+        if pg.sprite.groupcollide(
+            self.player_group,
+            self.enemies_bullets_group,
+            False,
+            False,
+            lambda pl, bull: pl.collide_rect.colliderect(bull.collide_rect),
+        ):
+            self.reset_game()
+
+        collected_coins: list[Coin] = pg.sprite.spritecollide(
+            self.player_group.sprite,
+            self.coins_group,
+            False,
+            lambda pl, coin: pl.collide_rect.colliderect(coin.collide_rect),
+        )
+        for coin in collected_coins:
+            coin.kill()
+            self.player_coins += coin.get_value()
+
+        collected_stars: list[ScoreStar] = pg.sprite.spritecollide(
+            self.player_group.sprite,
+            self.score_stars_group,
+            False,
+            lambda pl, star: pl.collide_rect.colliderect(star.collide_rect),
+        )
+        for star in collected_stars:
+            star.kill()
+            self.player_score += star.get_value()
+            print(self.player_score)
+
     def draw_screen(self) -> None:
         """Method which draws all objects in game etc"""
         self.game_background.draw_background(self.screen)
@@ -125,6 +170,7 @@ class Game:
         self.enemies_bullets_group.draw(self.screen)
         self.coins_group.draw(self.screen)
         self.score_stars_group.draw(self.screen)
+        self.flying_hearts_group.draw(self.screen)
         self.player_group.draw(self.screen)
         self.enemies_group.draw(self.screen)
         self.explosion_group.draw(self.screen)
@@ -137,6 +183,7 @@ class Game:
         self.enemies_group.update()
         self.coins_group.update()
         self.score_stars_group.update()
+        self.flying_hearts_group.update()
         self.player_bullets_group.update()
         self.enemies_bullets_group.update()
         self.explosion_group.update()

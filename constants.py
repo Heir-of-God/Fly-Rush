@@ -48,3 +48,8 @@ COINS_SPEED_X: int = 4  # px_per_frame
 SCORE_STAR_ANGLE_SPEED: int = 3  # degrees per frame
 SCORE_STAR_VALUE_RANGE: tuple[int, int] = (80, 150)  # (minimum, maximum) value star will give to player
 SCORE_STAR_SPEED_X: int = 10  # px per frame
+
+# Flying hearts
+FLYING_HEART_DELTA_Y: tuple[int, int] = (120, 180)  # (minimum, maximum) delta y on which flying heart can deviate
+FLYING_HEART_SPEED_Y: int = 2  # px per frame
+FLYING_HEART_SPEED_X: int = 4  # px per frame
