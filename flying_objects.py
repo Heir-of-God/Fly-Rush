@@ -23,6 +23,9 @@ from constants import (
 )
 
 
+BASE_PATH: str = "assets/graphics/flying_objects/"  # base path to graphics for flying objects
+
+
 class FlyingObject(pg.sprite.Sprite):
     """Base class for all flying objects in game"""
 
@@ -36,7 +39,7 @@ class FlyingObject(pg.sprite.Sprite):
     def set_up_rects(self) -> None:
         self.rect: pg.Rect = self.image.get_rect(
             topleft=(
-                GAME_SCREEN_WIDTH,
+                randint(GAME_SCREEN_WIDTH, GAME_SCREEN_WIDTH + self.image.get_width() * 2),
                 randint(0, GAME_SCREEN_HEIGHT - self.image.get_height()),
             )
         )
@@ -66,9 +69,7 @@ class Coin(FlyingObject):
         cls.images: dict[str, list[pg.Surface]] = {}  # coin type name -> list of images for this coin
         for t in ["bronze", "silver", "gold"]:
             cls.images[t] = [
-                pg.transform.rotozoom(
-                    pg.image.load(f"assets/graphics/flying_objects/coins/{t}/coin_{i}.png"), 0, 0.7
-                ).convert_alpha()
+                pg.transform.rotozoom(pg.image.load(BASE_PATH + f"coins/{t}/coin_{i}.png"), 0, 0.7).convert_alpha()
                 for i in range(0, 15, 1)
             ]
 
@@ -108,9 +109,7 @@ class ScoreStar(FlyingObject):
     @classmethod
     def load_graphics(cls) -> None:
         cls.images: list[pg.Surface] = [
-            pg.transform.rotozoom(
-                pg.image.load("assets/graphics/flying_objects/score_star/star.png"), 0, 0.25
-            ).convert_alpha()
+            pg.transform.rotozoom(pg.image.load(BASE_PATH + "score_star/star.png"), 0, 0.25).convert_alpha()
         ]
 
     def __init__(self) -> None:
@@ -136,9 +135,7 @@ class FlyingHeart(FlyingObject):
     @classmethod
     def load_graphics(cls) -> None:
         cls.images: list[pg.Surface] = [
-            pg.transform.rotozoom(
-                pg.image.load(f"assets/graphics/flying_hearts/hearts/heart{i}.png").convert_alpha(), 0, 0.3
-            )
+            pg.transform.rotozoom(pg.image.load(BASE_PATH + f"hearts/heart{i}.png").convert_alpha(), 0, 0.3)
             for i in range(1, 6, 1)
         ]
 
@@ -167,14 +164,14 @@ class FlyingHeart(FlyingObject):
             if self.rect.bottom >= GAME_SCREEN_HEIGHT:
                 self.rect.bottom = GAME_SCREEN_HEIGHT
                 self.speed_y *= -1
-            elif self.rect.center >= self.start_coor_y_center + self.pos_y_delta:
+            elif self.rect.centery >= self.start_coor_y_center + self.pos_y_delta:
                 self.speed_y *= -1
 
         else:  # heart is going up
             if self.rect.top <= 0:
                 self.rect.top = 0
                 self.speed_y *= -1
-            elif self.rect.center <= self.start_coor_y_center - self.pos_y_delta:
+            elif self.rect.centery <= self.start_coor_y_center - self.pos_y_delta:
                 self.speed_y *= -1
 
         # apply teleportation
