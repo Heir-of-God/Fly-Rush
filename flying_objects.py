@@ -17,6 +17,8 @@ from constants import (
     SCORE_STAR_ANGLE_SPEED,
     SCORE_STAR_VALUE_RANGE,
     SCORE_STAR_SPEED_X,
+    FLYING_HEART_DELTA_Y,
+    FLYING_HEART_SPEED_Y,
 )
 
 
@@ -38,6 +40,9 @@ class FlyingObject(pg.sprite.Sprite):
             )
         )
         self.create_collide_rect()
+
+    def create_collide_rect(self) -> None:
+        self.collide_rect: pg.Rect = self.rect.copy()
 
     def update_collide_rect(self) -> None:
         self.collide_rect.center = self.rect.center
@@ -114,9 +119,6 @@ class ScoreStar(FlyingObject):
         self.value: int = randint(SCORE_STAR_VALUE_RANGE[0], SCORE_STAR_VALUE_RANGE[1])
         self.set_up_rects()
 
-    def create_collide_rect(self) -> None:
-        self.collide_rect: pg.Rect = self.rect.copy()
-
     def move(self) -> None:
         self.rect.x -= SCORE_STAR_SPEED_X
 
@@ -129,3 +131,32 @@ class ScoreStar(FlyingObject):
         self.animation()
         self.move()
         self.update_collide_rect()
+
+
+class FlyingHeart(FlyingObject):
+
+    @classmethod
+    def load_graphics(cls) -> None:
+        cls.images: list[pg.Surface] = [
+            pg.transform.rotozoom(
+                pg.image.load(f"assets/graphics/flying_hearts/hearts/heart{i}.png").convert_alpha(), 0, 0.3
+            )
+            for i in range(1, 6, 1)
+        ]
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.image: pg.Surface = self.images[0]
+        self.current_animation_step: int = 0
+        self.set_up_rects()
+        self.start_coor_y_center = self.rect.centery
+        self.pos_y_delta: int = randint(FLYING_HEART_DELTA_Y[0], FLYING_HEART_DELTA_Y[1])
+        self.speed_y: int = choice(
+            [FLYING_HEART_SPEED_Y, -FLYING_HEART_SPEED_Y]
+        )  # randomly go from start to bottom or to the top
+
+    def animation(self) -> None:
+        self.current_animation_step += 1
+        if self.current_animation_step > 74:  # 75 // 15 = 5 -> last index is 4 because there's 5 heart's images
+            self.current_animation_step = 0
+        self.image = self.images[self.current_animation_step // 15]
