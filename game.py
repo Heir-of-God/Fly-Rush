@@ -4,10 +4,10 @@ from random import randint
 import pygame as pg
 from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, FPS, PLAYER_RELOAD_TIME, PLANE_EXPLOSION_SIZE_COEFFICIENT
 from background import GameBackground
-from explosion import Explosion
-from planes import PlayerPlane, EnemyPlane
-from bullets import PlayerBullet, EnemyBullet
-from flying_objects import Coin, ScoreStar, FlyingHeart
+from objects.explosion import Explosion
+from objects.planes import PlayerPlane, EnemyPlane
+from objects.bullets import PlayerBullet, EnemyBullet
+from objects.flying_objects import Coin, ScoreStar, FlyingHeart
 
 
 class Game:
@@ -161,7 +161,6 @@ class Game:
         for star in collected_stars:
             star.kill()
             self.player_score += star.get_value()
-            print(self.player_score)
 
     def draw_screen(self) -> None:
         """Method which draws all objects in game etc"""
