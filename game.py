@@ -5,9 +5,10 @@ import pygame as pg
 from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, FPS, PLAYER_RELOAD_TIME, PLANE_EXPLOSION_SIZE_COEFFICIENT
 from background import GameBackground
 from objects.explosion import Explosion
-from objects.planes import PlayerPlane, EnemyPlane
+from objects.planes import EnemyPlane
 from objects.bullets import PlayerBullet, EnemyBullet
 from objects.flying_objects import Coin, ScoreStar, FlyingHeart
+from player import Player
 
 
 class Game:
@@ -29,10 +30,9 @@ class Game:
 
         self.game_background: GameBackground = GameBackground()  # Class to move and draw game background
 
-        self.player_group = pg.sprite.GroupSingle(PlayerPlane())  # Class to control the player
+        self.player = Player()
+        self.player_group = pg.sprite.GroupSingle(self.player.player_plane)  # Class to control the player
         self.player_bullets_group = pg.sprite.Group()  # Class to control player's bullets
-        self.player_score: int = 0
-        self.player_coins: int = 0
 
         self.enemies_group = pg.sprite.Group()  # Class to control enemies
         self.enemies_bullets_group = pg.sprite.Group()  # Control all enemies' bullets
@@ -74,9 +74,8 @@ class Game:
         self.score_stars_group.empty()
         self.flying_hearts_group.empty()
         self.player_group.sprite.reset_position()
-
-        self.player_coins = 0
-        self.player_score = 0
+        self.player.reset_coins()
+        self.player.reset_score()
 
         self.set_timers()
 
@@ -150,7 +149,7 @@ class Game:
         )
         for coin in collected_coins:
             coin.kill()
-            self.player_coins += coin.get_value()
+            self.player.add_to_coins(coin.get_value())
 
         collected_stars: list[ScoreStar] = pg.sprite.spritecollide(
             self.player_group.sprite,
@@ -160,7 +159,7 @@ class Game:
         )
         for star in collected_stars:
             star.kill()
-            self.player_score += star.get_value()
+            self.player.add_to_score(star.get_value())
 
     def draw_screen(self) -> None:
         """Method which draws all objects in game etc"""
