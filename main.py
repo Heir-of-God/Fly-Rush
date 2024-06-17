@@ -1,5 +1,5 @@
-from game import Game
+from control import Control
 
 if __name__ == "__main__":
-    g = Game()
-    g.execute()
+    control_obj = Control()
+    control_obj.main_game_loop()

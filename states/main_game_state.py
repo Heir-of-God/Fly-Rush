@@ -1,35 +1,27 @@
-"""Module which contain main class for the game"""
+"""Module which contain state for main game"""
 
-# ! DEPRECATED, will be there for some time in case I've forgotten something
+import sys
+import os
+
+# for importing from parent directory
+scipt_dir: str = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(scipt_dir))
 
 from random import randint
 import pygame as pg
-from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, FPS, PLAYER_RELOAD_TIME, PLANE_EXPLOSION_SIZE_COEFFICIENT
 from background import GameBackground
+from .base_state import State
+from constants import PLANE_EXPLOSION_SIZE_COEFFICIENT, PLAYER_RELOAD_TIME
+from player import Player
 from objects.explosion import Explosion
 from objects.planes import EnemyPlane
 from objects.bullets import PlayerBullet, EnemyBullet
 from objects.flying_objects import Coin, ScoreStar, FlyingHeart
-from player import Player
 
 
-class Game:
-    """Main class to start and control the game. Uses other classes to create game and manage it."""
-
+class MainGameState(State):
     def __init__(self) -> None:
-        pg.init()
-
-        # Setting up games screen
-        self.screen: pg.Surface = pg.display.set_mode((GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT))
-        icon: pg.Surface = pg.transform.scale(
-            pg.image.load("assets/graphics/icons/main_icon.png").convert_alpha(), (64, 64)
-        )
-        pg.display.set_icon(icon)
-        pg.display.set_caption("Fly RUSH!")
-
-        # load graphics
-        self.load_graphics()
-
+        super().__init__()
         self.game_background: GameBackground = GameBackground()  # Class to move and draw game background
 
         self.player = Player()
@@ -51,21 +43,6 @@ class Game:
         self.flying_heart_spawn_event: int = pg.USEREVENT + 4
 
         self.set_timers()
-        self.clock = pg.time.Clock()
-
-    def set_timers(self) -> None:
-        pg.time.set_timer(self.enemy_spawn_event, 1500)
-        pg.time.set_timer(self.coin_spawn_event, 6000)
-        pg.time.set_timer(self.star_spawn_event, 6000)
-        pg.time.set_timer(self.flying_heart_spawn_event, 8000)
-
-    def load_graphics(self) -> None:
-        PlayerBullet.load_graphics()
-        EnemyBullet.load_graphics()
-        Explosion.load_graphics()
-        Coin.load_graphics()
-        ScoreStar.load_graphics()
-        FlyingHeart.load_graphics()
 
     def reset_game(self) -> None:
         self.enemies_bullets_group.empty()
@@ -81,34 +58,37 @@ class Game:
 
         self.set_timers()
 
-    def handle_events(self) -> None:
-        """Method to handle all events in the game"""
-        events: list[pg.event.Event] = pg.event.get()
-        keys: pg.key.ScancodeWrapper = pg.key.get_pressed()
+    def set_timers(self) -> None:
+        # TOFIX Pygame events running even when paused, rework them with conunters inside game state
+        pg.time.set_timer(self.enemy_spawn_event, 1500)
+        pg.time.set_timer(self.coin_spawn_event, 6000)
+        pg.time.set_timer(self.star_spawn_event, 6000)
+        pg.time.set_timer(self.flying_heart_spawn_event, 8000)
 
-        # handle events
-        for event in events:
-            if event.type == pg.QUIT:
-                pg.quit()
-                exit()
+    def get_event(self, event: pg.event.Event) -> None:
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_ESCAPE:
+                self.next = "menu"
+                self.done = True
 
-            elif event.type == self.enemy_spawn_event:
-                if randint(0, 3):
-                    if len(self.enemies_group) < 16:
-                        self.enemies_group.add(EnemyPlane())
+        elif event.type == self.enemy_spawn_event:
+            if randint(0, 3):
+                if len(self.enemies_group) < 16:
+                    self.enemies_group.add(EnemyPlane())
 
-            elif event.type == self.coin_spawn_event:
-                if randint(1, 3):  # Now spawning always. TODO (TOCHANGE)
-                    self.coins_group.add(Coin())
+        elif event.type == self.coin_spawn_event:
+            if randint(1, 3):  # Now spawning always. TODO (TOCHANGE)
+                self.coins_group.add(Coin())
 
-            elif event.type == self.star_spawn_event:
-                if randint(1, 2):
-                    self.score_stars_group.add(ScoreStar())
+        elif event.type == self.star_spawn_event:
+            if randint(1, 2):
+                self.score_stars_group.add(ScoreStar())
 
-            elif event.type == self.flying_heart_spawn_event:
-                if randint(1, 2):
-                    self.flying_hearts_group.add(FlyingHeart())
+        elif event.type == self.flying_heart_spawn_event:
+            if randint(1, 2):
+                self.flying_hearts_group.add(FlyingHeart())
 
+    def get_keys(self, keys: pg.key.ScancodeWrapper) -> None:
         # handle keys
         if keys[pg.K_SPACE] and self.player_group.sprite.can_shoot():
             self.player_group.sprite.set_reload_time(PLAYER_RELOAD_TIME)
@@ -119,6 +99,14 @@ class Game:
             if enemy.can_shoot():
                 self.enemies_bullets_group.add(EnemyBullet(*enemy.get_bullet_position()))
                 enemy.update_reload_time()
+
+    def load_graphics(self) -> None:
+        PlayerBullet.load_graphics()
+        EnemyBullet.load_graphics()
+        Explosion.load_graphics()
+        Coin.load_graphics()
+        ScoreStar.load_graphics()
+        FlyingHeart.load_graphics()
 
     def check_collisions(self) -> None:
         for player_bullet in self.player_bullets_group.sprites():
@@ -163,20 +151,7 @@ class Game:
             star.kill()
             self.player.add_to_score(star.get_value())
 
-    def draw_screen(self) -> None:
-        """Method which draws all objects in game etc"""
-        self.game_background.draw_background(self.screen)
-        self.player_bullets_group.draw(self.screen)
-        self.enemies_bullets_group.draw(self.screen)
-        self.coins_group.draw(self.screen)
-        self.score_stars_group.draw(self.screen)
-        self.flying_hearts_group.draw(self.screen)
-        self.player_group.draw(self.screen)
-        self.enemies_group.draw(self.screen)
-        self.explosion_group.draw(self.screen)
-        pg.display.update()
-
-    def update_game(self) -> None:
+    def update(self) -> None:
         """Method which updates all game with its logic"""
         self.game_background.move_background()
         self.player_group.update()
@@ -189,10 +164,13 @@ class Game:
         self.explosion_group.update()
         self.check_collisions()
 
-    def execute(self) -> None:
-        """Method to keep game running and update everything in game"""
-        while True:
-            self.handle_events()
-            self.update_game()
-            self.draw_screen()
-            self.clock.tick(FPS)
+    def draw(self, screen) -> None:
+        self.game_background.draw_background(screen)
+        self.player_bullets_group.draw(screen)
+        self.enemies_bullets_group.draw(screen)
+        self.coins_group.draw(screen)
+        self.score_stars_group.draw(screen)
+        self.flying_hearts_group.draw(screen)
+        self.player_group.draw(screen)
+        self.enemies_group.draw(screen)
+        self.explosion_group.draw(screen)
