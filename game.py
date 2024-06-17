@@ -1,5 +1,7 @@
 """Module which contain main class for the game"""
 
+# ! DEPRECATED, will be there for some time in case I've forgotten something
+
 from random import randint
 import pygame as pg
 from constants import GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, FPS, PLAYER_RELOAD_TIME, PLANE_EXPLOSION_SIZE_COEFFICIENT
