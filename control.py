@@ -20,11 +20,12 @@ class Control:
         pg.display.set_caption("Fly RUSH!")
 
         self.state_dict: dict[str, State] = {"gameplay": MainGameState(), "menu": MenuState()}
-        self.state_name: str = "gameplay"
+        self.state_name: str = "menu"
         self.state: State = self.state_dict[self.state_name]
         # load graphics
         for state in self.state_dict.values():
             state.load_graphics()
+        self.state_dict["menu"].setup_rects_and_buttons()
 
         self.done = False
         self.clock = pg.time.Clock()
