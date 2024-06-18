@@ -3,7 +3,7 @@
 # Games FPS (clock.time())
 FPS: int = 60
 
-# Window sizes
+# Window sizes (please don't change, some positions and sizes of objects in game are hardcoded and so will break if size will be changed)
 GAME_SCREEN_WIDTH: int = 1413
 GAME_SCREEN_HEIGHT: int = 768
 
