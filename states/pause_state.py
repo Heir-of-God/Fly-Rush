@@ -1,4 +1,4 @@
-"""Module which contain state for the pause"""
+"""Module which contains state for the pause"""
 
 import sys
 import os

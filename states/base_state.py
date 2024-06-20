@@ -1,4 +1,4 @@
-"""Module which contain class for base state"""
+"""Module which contains class for base state"""
 
 
 class State:
