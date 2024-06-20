@@ -1,4 +1,4 @@
-"""Module which contain state for main game"""
+"""Module which contains state for main game"""
 
 import sys
 import os

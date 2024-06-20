@@ -5,6 +5,8 @@ from constants import FPS, GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH
 from states.base_state import State
 from states.main_game_state import MainGameState
 from states.menu_state import MenuState
+from states.pause_state import PauseState
+from states.game_over_state import GameOverState
 
 
 class Control:
@@ -19,13 +21,20 @@ class Control:
         pg.display.set_icon(icon)
         pg.display.set_caption("Fly RUSH!")
 
-        self.state_dict: dict[str, State] = {"gameplay": MainGameState(), "menu": MenuState()}
+        self.state_dict: dict[str, State] = {
+            "gameplay": MainGameState(),
+            "menu": MenuState(),
+            "pause": PauseState(),
+            "game_over": GameOverState(),
+        }
         self.state_name: str = "menu"
         self.state: State = self.state_dict[self.state_name]
         # load graphics
         for state in self.state_dict.values():
             state.load_graphics()
         self.state_dict["menu"].setup_rects_and_buttons()
+        self.state_dict["pause"].setup_rects_and_buttons()
+        self.state_dict["game_over"].setup_rects_and_buttons()
 
         self.done = False
         self.clock = pg.time.Clock()
@@ -35,8 +44,8 @@ class Control:
         previous, self.state_name = self.state_name, self.state.next
         self.state.cleanup()
         self.state = self.state_dict[self.state_name]
-        self.state.startup()
         self.state.previous = previous
+        self.state.startup()
 
     def update(self) -> None:
         keys: pg.key.ScancodeWrapper = pg.key.get_pressed()
