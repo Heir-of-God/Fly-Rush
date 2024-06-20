@@ -34,10 +34,6 @@ class PauseState(State):
             center=(self.pause_title_bg_rect.centerx, self.pause_title_bg_rect.centery - 15)
         )
 
-        self.game_title_rect: pg.Rect = self.pause_title.get_rect(
-            center=(self.pause_title_bg_rect.centerx + 10, self.pause_title_bg_rect.centery)
-        )
-
         self.resume_button = Button(
             721,
             395,
