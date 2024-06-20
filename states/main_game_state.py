@@ -68,7 +68,7 @@ class MainGameState(State):
     def get_event(self, event: pg.event.Event) -> None:
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
-                self.next = "menu"
+                self.next = "pause"
                 self.done = True
 
         elif event.type == self.enemy_spawn_event:
@@ -117,6 +117,7 @@ class MainGameState(State):
                 lambda bull, enem: bull.collide_rect.colliderect(enem.collide_rect),
             )  # get list of enemies which collide with bullet
             if killed_enemies:
+                # TOFIX enemies can be killed while they're not even in screen
                 killed: EnemyPlane = killed_enemies[0]
                 self.explosion_group.add(Explosion(killed.get_rects_center(), PLANE_EXPLOSION_SIZE_COEFFICIENT))
                 killed.kill()
