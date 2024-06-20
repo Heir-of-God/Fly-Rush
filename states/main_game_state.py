@@ -58,6 +58,11 @@ class MainGameState(State):
 
         self.set_timers()
 
+    def startup(self) -> None:
+        print(self.previous)
+        if self.previous != "pause":
+            self.reset_game()
+
     def set_timers(self) -> None:
         # TOFIX Pygame events running even when paused, rework them with conunters inside game state
         pg.time.set_timer(self.enemy_spawn_event, 1500)
@@ -130,7 +135,8 @@ class MainGameState(State):
             False,
             lambda pl, bull: pl.collide_rect.colliderect(bull.collide_rect),
         ):
-            self.reset_game()
+            self.done = True
+            self.next = "game_over"
 
         collected_coins: list[Coin] = pg.sprite.spritecollide(
             self.player_group.sprite,
