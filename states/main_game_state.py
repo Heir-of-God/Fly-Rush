@@ -12,7 +12,7 @@ from random import randint
 import pygame as pg
 from background import GameBackground
 from .base_state import State
-from constants import PLANE_EXPLOSION_SIZE_COEFFICIENT, PLAYER_RELOAD_TIME
+from constants import PLANE_EXPLOSION_SIZE_COEFFICIENT, PLAYER_RELOAD_TIME, GAME_SCREEN_WIDTH
 from player import Player
 from objects.explosion import Explosion
 from objects.planes import EnemyPlane
@@ -48,6 +48,7 @@ class MainGameState(State):
         self.get_updated_coin_surf: Callable[..., pg.Surface] = lambda: self.bauhaus_font.render(
             str(self.player.coins).zfill(5), True, "#fee201"
         )
+
         self.player_coins_surf: pg.Surface = self.get_updated_coin_surf()
         self.player_coins_background: pg.Surface = pg.image.load(
             "assets/graphics/backgrounds/coin_background.png"
@@ -57,6 +58,13 @@ class MainGameState(State):
         self.player_coins_rect: pg.Rect = self.player_coins_surf.get_rect(
             center=(self.player_coins_background_rect.centerx + 76, self.player_coins_background_rect.centery - 4)
         )
+
+        self.get_updated_score_surf: Callable[..., pg.Surface] = lambda: self.bauhaus_font.render(
+            "Scores: " + str(self.player.score).zfill(6), True, "#ffd723"
+        )
+        self.player_score_surf: pg.Surface = self.get_updated_score_surf()
+        self.player_score_rect: pg.Rect = self.player_score_surf.get_rect()
+        self.player_score_rect.topright = (GAME_SCREEN_WIDTH - 10, 5)
 
         self.set_timers()
 
@@ -72,6 +80,7 @@ class MainGameState(State):
         self.player.reset_coins()
         self.player.reset_score()
         self.player_coins_surf = self.get_updated_coin_surf()
+        self.player_score_surf = self.get_updated_score_surf()
 
         self.set_timers()
 
@@ -130,6 +139,7 @@ class MainGameState(State):
         FlyingHeart.load_graphics()
 
     def check_collisions(self) -> None:
+        killed = None
         for player_bullet in self.player_bullets_group.sprites():
             killed_enemies: list[EnemyPlane] = pg.sprite.spritecollide(
                 player_bullet,
@@ -175,6 +185,8 @@ class MainGameState(State):
         for star in collected_stars:
             star.kill()
             self.player.add_to_score(star.get_value())
+        if collected_stars or killed is not None:
+            self.player_score_surf = self.get_updated_score_surf()
 
     def update(self) -> None:
         """Method which updates all game with its logic"""
@@ -193,6 +205,7 @@ class MainGameState(State):
         self.game_background.draw_background(screen)
         screen.blit(self.player_coins_background, self.player_coins_background_rect)
         screen.blit(self.player_coins_surf, self.player_coins_rect)
+        screen.blit(self.player_score_surf, self.player_score_rect)
         self.player_bullets_group.draw(screen)
         self.enemies_bullets_group.draw(screen)
         self.coins_group.draw(screen)
