@@ -2,6 +2,7 @@
 
 import sys
 import os
+from typing import Callable
 
 # for importing from parent directory
 scipt_dir: str = os.path.dirname(os.path.abspath(__file__))
@@ -42,6 +43,21 @@ class MainGameState(State):
         self.star_spawn_event: int = pg.USEREVENT + 3
         self.flying_heart_spawn_event: int = pg.USEREVENT + 4
 
+        self.bauhaus_font: pg.font.Font = pg.font.Font("assets/fonts/bauhaus93.ttf", 34)
+
+        self.get_updated_coin_surf: Callable[..., pg.Surface] = lambda: self.bauhaus_font.render(
+            str(self.player.coins).zfill(5), True, "#fee201"
+        )
+        self.player_coins_surf: pg.Surface = self.get_updated_coin_surf()
+        self.player_coins_background: pg.Surface = pg.image.load(
+            "assets/graphics/backgrounds/coin_background.png"
+        ).convert_alpha()
+        self.player_coins_background = pg.transform.rotozoom(self.player_coins_background, 0, 0.4)
+        self.player_coins_background_rect: pg.Rect = self.player_coins_background.get_rect(topleft=(0, 0))
+        self.player_coins_rect: pg.Rect = self.player_coins_surf.get_rect(
+            center=(self.player_coins_background_rect.centerx + 76, self.player_coins_background_rect.centery - 4)
+        )
+
         self.set_timers()
 
     def reset_game(self) -> None:
@@ -55,11 +71,11 @@ class MainGameState(State):
         self.player_group.sprite.reset_position()
         self.player.reset_coins()
         self.player.reset_score()
+        self.player_coins_surf = self.get_updated_coin_surf()
 
         self.set_timers()
 
     def startup(self) -> None:
-        print(self.previous)
         if self.previous != "pause":
             self.reset_game()
 
@@ -147,6 +163,8 @@ class MainGameState(State):
         for coin in collected_coins:
             coin.kill()
             self.player.add_to_coins(coin.get_value())
+        if collected_coins:
+            self.player_coins_surf = self.get_updated_coin_surf()
 
         collected_stars: list[ScoreStar] = pg.sprite.spritecollide(
             self.player_group.sprite,
@@ -173,6 +191,8 @@ class MainGameState(State):
 
     def draw(self, screen) -> None:
         self.game_background.draw_background(screen)
+        screen.blit(self.player_coins_background, self.player_coins_background_rect)
+        screen.blit(self.player_coins_surf, self.player_coins_rect)
         self.player_bullets_group.draw(screen)
         self.enemies_bullets_group.draw(screen)
         self.coins_group.draw(screen)
