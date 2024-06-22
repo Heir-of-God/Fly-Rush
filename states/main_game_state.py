@@ -12,17 +12,19 @@ from random import randint
 import pygame as pg
 from background import GameBackground
 from .base_state import State
-from constants import PLANE_EXPLOSION_SIZE_COEFFICIENT, PLAYER_RELOAD_TIME, GAME_SCREEN_WIDTH
+from constants import PLANE_EXPLOSION_SIZE_COEFFICIENT, PLAYER_RELOAD_TIME, GAME_SCREEN_WIDTH, BEST_SCORE_FILE_NAME
 from player import Player
 from objects.explosion import Explosion
 from objects.planes import EnemyPlane
 from objects.bullets import PlayerBullet, EnemyBullet
 from objects.flying_objects import Coin, ScoreStar, FlyingHeart
+from save_load_system import GameSaveLoadSystem
 
 
 class MainGameState(State):
     def __init__(self) -> None:
         super().__init__()
+        self.save_load_system: GameSaveLoadSystem = GameSaveLoadSystem()
         self.game_background: GameBackground = GameBackground()  # Class to move and draw game background
 
         self.player = Player()
@@ -84,9 +86,18 @@ class MainGameState(State):
 
         self.set_timers()
 
+    def update_record(self) -> None:
+        current_player_score: int = self.player.score
+        last_player_record: int = self.save_load_system.load_game_data({BEST_SCORE_FILE_NAME: 0})[BEST_SCORE_FILE_NAME]
+        if current_player_score > last_player_record:
+            self.save_load_system.save_game_data({BEST_SCORE_FILE_NAME: current_player_score})
+
     def startup(self) -> None:
         if self.previous != "pause":
             self.reset_game()
+
+    def cleanup(self) -> None:
+        self.update_record()
 
     def set_timers(self) -> None:
         # TOFIX Pygame events running even when paused, rework them with conunters inside game state
