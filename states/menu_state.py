@@ -3,6 +3,7 @@
 import sys
 import os
 
+
 # for importing from parent directory
 scipt_dir: str = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(scipt_dir))
@@ -10,10 +11,14 @@ sys.path.append(os.path.dirname(scipt_dir))
 import pygame as pg
 from .base_state import State
 from .menu_button import Button
+from save_load_system import GameSaveLoadSystem
+from constants import BEST_SCORE_FILE_NAME
 
 
 class MenuState(State):
     def __init__(self) -> None:
+        self.save_load_system = GameSaveLoadSystem()
+        self.font_bauhaus93: pg.font.Fon = pg.font.Font("assets/fonts/bauhaus93.ttf", 34)
         super().__init__()
 
     def update_active_button(self, new_ind: int) -> None:
@@ -97,6 +102,14 @@ class MenuState(State):
         super().cleanup()
         self.update_active_button(0)
 
+    def startup(self) -> None:
+        record: int = self.save_load_system.load_game_data({BEST_SCORE_FILE_NAME: 0})[BEST_SCORE_FILE_NAME]
+        self.player_record_surf: pg.Surface = self.font_bauhaus93.render(
+            "Your record: " + str(record).zfill(6), True, "#FFD723"
+        )
+        self.player_record_rect: pg.Rect = self.player_record_surf.get_rect()
+        self.player_record_rect.topleft = (10, 5)
+
     def get_event(self, event) -> None:
         if event.type == pg.KEYDOWN:
             pressed_key = event.key
@@ -141,5 +154,6 @@ class MenuState(State):
         screen.blit(self.background, (0, 0))
         screen.blit(self.game_title_bg, self.game_title_bg_rect)
         screen.blit(self.game_title, self.game_title_rect)
+        screen.blit(self.player_record_surf, self.player_record_rect)
         for button in self.buttons_list:
             button.draw(screen)
