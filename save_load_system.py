@@ -3,19 +3,20 @@
 import pickle as pc
 from os import mkdir, path
 from typing import Any
+from constants import DATA_FOLDER_NAME, DATA_FILE_EXTENSION, ABSOLUTE_DATA_FOLDER_PATH
 
 
 class GameSaveLoadSystem:
 
-    def __init__(self, absolute_folder_path: str, file_extension: str) -> None:
+    def __init__(self) -> None:
         """
         Args:
             absolute_folder_path (str): absolute path to the folder which will contain data_folder
             file_extension (str): file extension which will be used for data saving (starts with .); Example: .data
         """
-        self.absolute_folder_path: str = absolute_folder_path
-        self.file_extension: str = file_extension
-        self.data_folder_name: str = "data_folder"
+        self.absolute_folder_path: str = ABSOLUTE_DATA_FOLDER_PATH
+        self.file_extension: str = DATA_FILE_EXTENSION
+        self.data_folder_name: str = DATA_FOLDER_NAME
 
     def save_data_to_file(self, file_name: str, data_to_save: str | int | float) -> None:
         """Method to save single data entry to single file"""
@@ -39,7 +40,7 @@ class GameSaveLoadSystem:
 
         return data
 
-    def load_game_data(self, files_to_load_dict: dict[str, Any]) -> list[Any]:
+    def load_game_data(self, files_to_load_dict: dict[str, Any]) -> dict[str, Any]:
         """Method to load all data from all files in one dict
 
         Args:
@@ -49,7 +50,7 @@ class GameSaveLoadSystem:
         Returns:
             dict: key is the name of the file and the value is the value assigned to it
         """
-        return_data: list[Any] = files_to_load_dict.copy()
+        return_data: dict[str, Any] = files_to_load_dict.copy()
         for file_name in files_to_load_dict:
             file_path: str = path.join(
                 self.absolute_folder_path, self.data_folder_name, file_name + self.file_extension
