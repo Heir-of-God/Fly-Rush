@@ -1,6 +1,9 @@
 """Module which store all constants (and parameters that you can change as settings)"""
 
 # Games FPS (clock.time())
+from os import getcwd
+
+
 FPS: int = 60
 
 # Window sizes (please don't change, some positions and sizes of objects in game are hardcoded and so will break if size will be changed)
@@ -53,3 +56,9 @@ SCORE_STAR_SPEED_X: int = 10  # px per frame
 FLYING_HEART_DELTA_Y: tuple[int, int] = (120, 180)  # (minimum, maximum) delta y on which flying heart can deviate
 FLYING_HEART_SPEED_Y: int = 2  # px per frame
 FLYING_HEART_SPEED_X: int = 4  # px per frame
+
+# Data saving
+ABSOLUTE_DATA_FOLDER_PATH: str = getcwd()  # path to folder which will contain data folder
+DATA_FOLDER_NAME: str = "data_folder"
+DATA_FILE_EXTENSION: str = ".data"
+BEST_SCORE_FILE_NAME: str = "record"

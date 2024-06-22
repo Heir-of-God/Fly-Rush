@@ -35,6 +35,7 @@ class Control:
         self.state_dict["menu"].setup_rects_and_buttons()
         self.state_dict["pause"].setup_rects_and_buttons()
         self.state_dict["game_over"].setup_rects_and_buttons()
+        self.state.startup()
 
         self.done = False
         self.clock = pg.time.Clock()
@@ -59,6 +60,7 @@ class Control:
     def event_loop(self) -> None:
         for event in pg.event.get():
             if event.type == pg.QUIT:
+                self.state_dict["gameplay"].update_record()
                 self.done = True
             self.state.get_event(event)
 
