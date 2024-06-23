@@ -62,3 +62,6 @@ ABSOLUTE_DATA_FOLDER_PATH: str = getcwd()  # path to folder which will contain d
 DATA_FOLDER_NAME: str = "data_folder"
 DATA_FILE_EXTENSION: str = ".data"
 BEST_SCORE_FILE_NAME: str = "record"
+
+# Torpedo
+TORPEDO_TIME_RELOAD: int = 1800  # This value divided by FPS is seconds for reload
