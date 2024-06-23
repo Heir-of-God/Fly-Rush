@@ -35,6 +35,7 @@ class Control:
         self.state_dict["menu"].setup_rects_and_buttons()
         self.state_dict["pause"].setup_rects_and_buttons()
         self.state_dict["game_over"].setup_rects_and_buttons()
+        self.state_dict["gameplay"].setup_rects_and_objects()
         self.state.startup()
 
         self.done = False
