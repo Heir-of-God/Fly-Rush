@@ -62,3 +62,17 @@ ABSOLUTE_DATA_FOLDER_PATH: str = getcwd()  # path to folder which will contain d
 DATA_FOLDER_NAME: str = "data_folder"
 DATA_FILE_EXTENSION: str = ".data"
 BEST_SCORE_FILE_NAME: str = "record"
+
+# Torpedo
+TORPEDO_TIME_RELOAD: int = 1800  # This value divided by FPS is seconds for reload
+TORPEDO_DELTA_X: int = (
+    100  # Torpedo will explode in range [GAME_SCREEN_WIDTH * 0.85 - TORPEDO_DELTA_X, GAME_SCREEN_WIDTH * 0.85 + TORPEDO_DELTA_X]
+)
+TORPEDO_SPEED_X: int = 8  # px per frame
+TORPEDO_SPEED_Y: int = 2.5  # px per frame
+TORPEDO_DELTA_Y: float = 37.5  # px (range in which torpedo will fly from bottom to top)
+TORPEDO_EXPLOSION_RECT_SIDE: int = 260  # px (in this range all enemies planes will be killed)
+TORPEDO_EXPLOSION_SIZE_COEFFICIENT: float = (
+    0.7  # value which set the size of explosion animation (impacts only on visual effect)
+)
+TORPEDO_COIN_PRICE: int = 10  # Price for player to launch torpedo
