@@ -12,13 +12,21 @@ from random import randint
 import pygame as pg
 from background import GameBackground
 from .base_state import State
-from constants import PLANE_EXPLOSION_SIZE_COEFFICIENT, PLAYER_RELOAD_TIME, GAME_SCREEN_WIDTH, BEST_SCORE_FILE_NAME
+from constants import (
+    PLANE_EXPLOSION_SIZE_COEFFICIENT,
+    PLAYER_RELOAD_TIME,
+    GAME_SCREEN_WIDTH,
+    BEST_SCORE_FILE_NAME,
+    TORPEDO_EXPLOSION_SIZE_COEFFICIENT,
+    TORPEDO_COIN_PRICE,
+)
 from player import Player
 from objects.explosion import Explosion
 from objects.planes import EnemyPlane
 from objects.bullets import PlayerBullet, EnemyBullet
 from objects.flying_objects import Coin, ScoreStar, FlyingHeart
 from objects.super_reload_clock import ReloadTimer
+from objects.torpedo import Torpedo
 from save_load_system import GameSaveLoadSystem
 
 
@@ -35,6 +43,7 @@ class MainGameState(State):
         self.enemies_group = pg.sprite.Group()  # Class to control enemies
         self.enemies_bullets_group = pg.sprite.Group()  # Control all enemies' bullets
 
+        self.torpedo_group = pg.sprite.Group()  # Control all torpedos
         self.explosion_group = pg.sprite.Group()  # Control all explosions
 
         self.coins_group = pg.sprite.Group()  # Controll all coins
@@ -51,6 +60,7 @@ class MainGameState(State):
     def load_graphics(self) -> None:
         PlayerBullet.load_graphics()
         EnemyBullet.load_graphics()
+        Torpedo.load_graphics()
         ReloadTimer.load_graphics()
         Explosion.load_graphics()
         Coin.load_graphics()
@@ -83,13 +93,16 @@ class MainGameState(State):
         self.player_score_rect.topright = (GAME_SCREEN_WIDTH - 10, 5)
 
         self.torpedo_reload_timer = ReloadTimer(
-            self.player_coins_background_rect.centerx + 180, self.player_coins_background_rect.centery - 5
+            self.player_coins_background_rect.centerx + 180,
+            self.player_coins_background_rect.centery - 5,
+            "assets/fonts/bauhaus93.ttf",
         )
 
     def reset_game(self) -> None:
         self.enemies_bullets_group.empty()
         self.enemies_group.empty()
         self.player_bullets_group.empty()
+        self.torpedo_group.empty()
         self.explosion_group.empty()
         self.coins_group.empty()
         self.score_stars_group.empty()
@@ -128,8 +141,14 @@ class MainGameState(State):
             if event.key == pg.K_ESCAPE:
                 self.next = "pause"
                 self.done = True
-            if event.key == pg.K_k:
+            if (
+                self.torpedo_reload_timer.reload_time == 0
+                and self.player.coins >= TORPEDO_COIN_PRICE
+                and event.key == pg.K_k
+            ):
+                self.torpedo_group.add(Torpedo(*self.player_group.sprite.get_bullet_position()))
                 self.torpedo_reload_timer.set_timer()
+                self.player.add_to_coins(-TORPEDO_COIN_PRICE)
 
         elif event.type == self.enemy_spawn_event:
             if randint(0, 3):
@@ -176,6 +195,18 @@ class MainGameState(State):
                 killed.kill()
                 player_bullet.kill()
 
+        for torpedo in self.torpedo_group:
+            if torpedo.is_ready_to_explode():
+                explosion_collide_rect: pg.Rect = torpedo.get_explosion_rect()
+                pg.sprite.spritecollide(
+                    torpedo,
+                    self.enemies_group,
+                    True,
+                    lambda _, enem: enem.collide_rect.colliderect(explosion_collide_rect),
+                )
+                torpedo.kill()
+                self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
+
         if pg.sprite.groupcollide(
             self.player_group,
             self.enemies_bullets_group,
@@ -215,6 +246,7 @@ class MainGameState(State):
         self.game_background.move_background()
         self.player_group.update()
         self.enemies_group.update()
+        self.torpedo_group.update()
         self.torpedo_reload_timer.update()
         self.coins_group.update()
         self.score_stars_group.update()
@@ -232,6 +264,7 @@ class MainGameState(State):
         self.torpedo_reload_timer.draw(screen)
         self.player_bullets_group.draw(screen)
         self.enemies_bullets_group.draw(screen)
+        self.torpedo_group.draw(screen)
         self.coins_group.draw(screen)
         self.score_stars_group.draw(screen)
         self.flying_hearts_group.draw(screen)
