@@ -51,7 +51,7 @@ class MainGameState(State):
     def load_graphics(self) -> None:
         PlayerBullet.load_graphics()
         EnemyBullet.load_graphics()
-        ReloadTimer.loadgraphics()
+        ReloadTimer.load_graphics()
         Explosion.load_graphics()
         Coin.load_graphics()
         ScoreStar.load_graphics()

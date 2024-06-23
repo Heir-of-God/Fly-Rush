@@ -14,7 +14,7 @@ from constants import TORPEDO_TIME_RELOAD
 class ReloadTimer:
 
     @classmethod
-    def loadgraphics(cls) -> None:
+    def load_graphics(cls) -> None:
         cls.images: list[pg.Surface] = [
             pg.image.load(f"assets/graphics/clock_timer/clock_{str(i)}.png") for i in range(1, 17, 1)
         ]
