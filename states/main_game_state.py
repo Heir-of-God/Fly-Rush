@@ -66,6 +66,12 @@ class MainGameState(State):
         Coin.load_graphics()
         ScoreStar.load_graphics()
         FlyingHeart.load_graphics()
+        self.extra_life_surfs: list[pg.Surface] = [
+            pg.transform.rotozoom(
+                pg.image.load(f"assets/graphics/flying_objects/hearts/heart{i}.png"), 0, 0.21
+            ).convert_alpha()
+            for i in range(2)
+        ]
 
     def setup_rects_and_objects(self) -> None:
         """Method to load all needed objects and rects after graphic has been loaded"""
@@ -92,9 +98,12 @@ class MainGameState(State):
         self.player_score_rect: pg.Rect = self.player_score_surf.get_rect()
         self.player_score_rect.topright = (GAME_SCREEN_WIDTH - 10, 5)
 
+        self.extra_life_rect: pg.Rect = self.extra_life_surfs[0].get_rect(
+            midleft=(self.player_coins_background_rect.right + 5, self.player_coins_background_rect.centery - 4)
+        )
         self.torpedo_reload_timer = ReloadTimer(
-            self.player_coins_background_rect.centerx + 180,
-            self.player_coins_background_rect.centery - 5,
+            self.extra_life_rect.right + 15,
+            self.extra_life_rect.centery,
             "assets/fonts/bauhaus93.ttf",
         )
 
@@ -110,6 +119,7 @@ class MainGameState(State):
         self.player_group.sprite.reset_position()
         self.player.reset_coins()
         self.player.reset_score()
+        self.player.recover_extra_life()
         self.player_coins_surf = self.get_updated_coin_surf()
         self.player_score_surf = self.get_updated_score_surf()
         self.torpedo_reload_timer.reset_timer()
@@ -261,6 +271,7 @@ class MainGameState(State):
         screen.blit(self.player_coins_background, self.player_coins_background_rect)
         screen.blit(self.player_coins_surf, self.player_coins_rect)
         screen.blit(self.player_score_surf, self.player_score_rect)
+        screen.blit(self.extra_life_surfs[self.player.extra_life], self.extra_life_rect)
         self.torpedo_reload_timer.draw(screen)
         self.player_bullets_group.draw(screen)
         self.enemies_bullets_group.draw(screen)

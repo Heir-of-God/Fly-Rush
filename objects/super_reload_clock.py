@@ -21,10 +21,10 @@ class ReloadTimer:
         for ind in range(len(cls.images)):
             cls.images[ind] = pg.transform.rotozoom(cls.images[ind], 0, 0.08).convert_alpha()
 
-    def __init__(self, centerx: int, centery: int, path_to_font_for_countdown: str) -> None:
+    def __init__(self, leftx: int, centery: int, path_to_font_for_countdown: str) -> None:
         self.reload_time: int = 0
         self.image: pg.Surface = self.images[0]
-        self.rect: pg.Rect = self.image.get_rect(center=(centerx, centery))
+        self.rect: pg.Rect = self.image.get_rect(midleft=(leftx, centery))
         self.timer_font = pg.font.Font(path_to_font_for_countdown, 20)
 
     def set_timer(self) -> None:
