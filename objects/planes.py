@@ -5,6 +5,7 @@ import pygame as pg
 from constants import (
     GAME_SCREEN_HEIGHT,
     GAME_SCREEN_WIDTH,
+    PLAYER_IMMORTAL_AFTER_HIT,
     PLAYER_SPEED_X_RIGHT,
     PLAYER_SPEED_X_LEFT,
     PLAYER_SPEED_Y,
@@ -32,7 +33,7 @@ class Plane(pg.sprite.Sprite):
         self.collide_rect.scale_by_ip(0.70, y_scale)
 
     def bullet_reload(self) -> None:
-        """Updating reload time for plane every frame if it's not 0"""
+        """Updating reload self.immortal_timer for plane every frame if it's not 0"""
         if self.reload_time != 0:
             self.reload_time -= 1
 
@@ -55,17 +56,42 @@ class Plane(pg.sprite.Sprite):
 class PlayerPlane(Plane):
     """Class player's plane (input handling)"""
 
+    possible_colors: list[str] = ["red", "blue", "green", "yellow"]
+
+    @classmethod
+    def load_graphics(cls) -> None:
+        cls.images: dict[str, list[pg.Surface]] = {}  # color -> list of 2 elements
+        for color in cls.possible_colors:
+            imgs: list[pg.Surface] = [
+                pg.transform.rotozoom(
+                    pg.image.load(f"assets/graphics/planes/{color}1{part}.png"), 0, 0.15
+                ).convert_alpha()
+                for part in ("", "_immortal")
+            ]
+            cls.images[color] = imgs
+
     def __init__(self) -> None:
         super().__init__()
-        self.image: pg.Surface = pg.transform.rotozoom(
-            pg.image.load(f"assets/graphics/planes/{choice(['red', 'blue', 'green', 'yellow'])}1.png"), 0, 0.15
-        ).convert_alpha()
+        self.image: pg.Surface = self.images["green"][0]
         self.rect: pg.Rect = self.image.get_rect()
-        self.reset_position()
+        self.reset()
         self.create_collide_rect()
+        self.immortal_timer: int = 0
 
-    def reset_position(self) -> None:
+    def animation(self) -> None:
+        """Player's animation (which contains only flickering after hit)"""
+        self.image = self.images[self.current_color][self.immortal_timer // 10 % 2 == 0]
+        if self.immortal_timer == 1:
+            self.image = self.images[self.current_color][0]
+
+    def make_immortal(self) -> None:
+        self.immortal_timer: int = PLAYER_IMMORTAL_AFTER_HIT
+
+    def reset(self) -> None:
         self.rect.center = (PLAYER_START_X, PLAYER_START_y)
+        self.current_color: str = choice(self.possible_colors)
+        self.image: pg.Surface = self.images[self.current_color][0]
+        self.immortal_timer = 0
 
     def handle_player_input(self) -> None:
         keys: pg.key.ScancodeWrapper = pg.key.get_pressed()
@@ -85,6 +111,9 @@ class PlayerPlane(Plane):
         return (self.collide_rect.right, self.collide_rect.centery)
 
     def update(self) -> None:
+        if self.immortal_timer:
+            self.animation()
+            self.immortal_timer -= 1
         self.bullet_reload()
         self.handle_player_input()
 
@@ -143,7 +172,7 @@ class EnemyPlane(Plane):
     def can_shoot(self) -> bool:
         return (
             super().can_shoot() and self.rect.right <= self.right_target_x
-        )  # if there's no reload time and plane's reached its target
+        )  # if there's no reload self.immortal_timer and plane's reached its target
 
     def update(self) -> None:
         self.bullet_reload()

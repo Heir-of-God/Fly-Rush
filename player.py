@@ -5,7 +5,6 @@ from objects.planes import PlayerPlane
 
 class Player:
     def __init__(self) -> None:
-        self.player_plane = PlayerPlane()
         self.extra_life: int = True
         self.score: int = 0
         self.coins: int = 0

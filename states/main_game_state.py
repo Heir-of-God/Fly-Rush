@@ -22,7 +22,7 @@ from constants import (
 )
 from player import Player
 from objects.explosion import Explosion
-from objects.planes import EnemyPlane
+from objects.planes import EnemyPlane, PlayerPlane
 from objects.bullets import PlayerBullet, EnemyBullet
 from objects.flying_objects import Coin, ScoreStar, FlyingHeart
 from objects.super_reload_clock import ReloadTimer
@@ -37,7 +37,9 @@ class MainGameState(State):
         self.game_background: GameBackground = GameBackground()  # Class to move and draw game background
 
         self.player = Player()
-        self.player_group = pg.sprite.GroupSingle(self.player.player_plane)  # Class to control the player
+        self.player_group = (
+            pg.sprite.GroupSingle()
+        )  # Class to control the player (Player plane added after loading graphics)
         self.player_bullets_group = pg.sprite.Group()  # Class to control player's bullets
 
         self.enemies_group = pg.sprite.Group()  # Class to control enemies
@@ -58,6 +60,7 @@ class MainGameState(State):
         self.set_timers()
 
     def load_graphics(self) -> None:
+        PlayerPlane.load_graphics()
         PlayerBullet.load_graphics()
         EnemyBullet.load_graphics()
         Torpedo.load_graphics()
@@ -75,6 +78,7 @@ class MainGameState(State):
 
     def setup_rects_and_objects(self) -> None:
         """Method to load all needed objects and rects after graphic has been loaded"""
+        self.player_group.add(PlayerPlane())
         self.bauhaus_font: pg.font.Font = pg.font.Font("assets/fonts/bauhaus93.ttf", 34)
 
         self.get_updated_coin_surf: Callable[..., pg.Surface] = lambda: self.bauhaus_font.render(
@@ -116,7 +120,7 @@ class MainGameState(State):
         self.coins_group.empty()
         self.score_stars_group.empty()
         self.flying_hearts_group.empty()
-        self.player_group.sprite.reset_position()
+        self.player_group.sprite.reset()
         self.player.reset_coins()
         self.player.reset_score()
         self.player.recover_extra_life()
@@ -217,22 +221,25 @@ class MainGameState(State):
                 torpedo.kill()
                 self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
 
-        bullets_attacked_player: list[EnemyBullet] = pg.sprite.spritecollide(
-            self.player_group.sprite,
-            self.enemies_bullets_group,
-            True,
-            lambda pl, bull: pl.collide_rect.colliderect(bull.collide_rect),
-        )
-        if bullets_attacked_player:
-            bullet_to_create_explosion: EnemyBullet = bullets_attacked_player[0]
-            self.explosion_group.add(
-                Explosion(bullet_to_create_explosion.rect.center, PLANE_EXPLOSION_SIZE_COEFFICIENT)
+        if not self.player_group.sprite.immortal_timer:
+            bullets_attacked_player: list[EnemyBullet] = pg.sprite.spritecollide(
+                self.player_group.sprite,
+                self.enemies_bullets_group,
+                True,
+                lambda pl, bull: pl.collide_rect.colliderect(bull.collide_rect),
             )
-            if self.player.extra_life:
-                self.player.extra_life = not self.player.extra_life
-            else:
-                self.done = True
-                self.next = "game_over"
+
+            if bullets_attacked_player:
+                bullet_to_create_explosion: EnemyBullet = bullets_attacked_player[0]
+                self.explosion_group.add(
+                    Explosion(bullet_to_create_explosion.rect.center, PLANE_EXPLOSION_SIZE_COEFFICIENT)
+                )
+                if self.player.extra_life:
+                    self.player_group.sprite.make_immortal()
+                    self.player.extra_life = not self.player.extra_life
+                else:
+                    self.done = True
+                    self.next = "game_over"
 
         collected_coins: list[Coin] = pg.sprite.spritecollide(
             self.player_group.sprite,
