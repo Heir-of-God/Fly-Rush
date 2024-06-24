@@ -217,15 +217,22 @@ class MainGameState(State):
                 torpedo.kill()
                 self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
 
-        if pg.sprite.groupcollide(
-            self.player_group,
+        bullets_attacked_player: list[EnemyBullet] = pg.sprite.spritecollide(
+            self.player_group.sprite,
             self.enemies_bullets_group,
-            False,
-            False,
+            True,
             lambda pl, bull: pl.collide_rect.colliderect(bull.collide_rect),
-        ):
-            self.done = True
-            self.next = "game_over"
+        )
+        if bullets_attacked_player:
+            bullet_to_create_explosion: EnemyBullet = bullets_attacked_player[0]
+            self.explosion_group.add(
+                Explosion(bullet_to_create_explosion.rect.center, PLANE_EXPLOSION_SIZE_COEFFICIENT)
+            )
+            if self.player.extra_life:
+                self.player.extra_life = not self.player.extra_life
+            else:
+                self.done = True
+                self.next = "game_over"
 
         collected_coins: list[Coin] = pg.sprite.spritecollide(
             self.player_group.sprite,
@@ -250,6 +257,17 @@ class MainGameState(State):
             self.player.add_to_score(star.get_value())
         if collected_stars or killed is not None:
             self.player_score_surf = self.get_updated_score_surf()
+
+        if not self.player.extra_life:
+            collected_hearts: list[FlyingHeart] = pg.sprite.spritecollide(
+                self.player_group.sprite,
+                self.flying_hearts_group,
+                True,
+                lambda pl, heart: pl.collide_rect.colliderect(heart.collide_rect),
+            )
+            if collected_hearts:
+                if not self.player.extra_life:
+                    self.player.recover_extra_life()
 
     def update(self) -> None:
         """Method which updates all game with its logic"""
