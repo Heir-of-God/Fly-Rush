@@ -23,7 +23,7 @@ class AudioController:
         self.is_music_on: int = True
 
         self.sounds_dict: dict[str, pg.mixer.Sound] = {
-            "change_button": pg.mixer.Sound(self.SOUNDS_PATH + "button_change.mp3"),
+            "button_change": pg.mixer.Sound(self.SOUNDS_PATH + "button_change.mp3"),
             "button_confirm": pg.mixer.Sound(self.SOUNDS_PATH + "button_confirm.mp3"),
             "shot": pg.mixer.Sound(self.SOUNDS_PATH + "shot_sound.mp3"),
             "explosion": pg.mixer.Sound(self.SOUNDS_PATH + "explosion.mp3"),
@@ -31,7 +31,7 @@ class AudioController:
             "particle": pg.mixer.Sound(self.SOUNDS_PATH + "particle_sound.wav"),
             "game_over": pg.mixer.Sound(self.SOUNDS_PATH + "game_over.wav"),
         }
-        self.sounds_dict["change_button"].set_volume(BUTTON_CHANGE_SOUND_VOLUME)
+        self.sounds_dict["button_change"].set_volume(BUTTON_CHANGE_SOUND_VOLUME)
         self.sounds_dict["button_confirm"].set_volume(BUTTON_CONFIRM_SOUND_VOLUME)
         self.sounds_dict["shot"].set_volume(SHOT_SOUND_VOLUME)
         self.sounds_dict["explosion"].set_volume(EXPLOSION_SOUND_VOLUME1)
@@ -49,6 +49,9 @@ class AudioController:
 
     def flip_volume_status(self) -> None:
         self.is_volume_on = not self.is_volume_on
+        if not self.is_volume_on:
+            for sound in self.sounds_dict.values():
+                sound.stop()
 
     def flip_music_status(self) -> None:
         self.is_music_on = not self.is_music_on
@@ -66,6 +69,9 @@ class AudioController:
                 self.sounds_dict[sound_name].set_volume(volume)
                 self.sounds_dict[sound_name].play()
                 self.sounds_dict[sound_name].set_volume(last_volume)
+
+    def stop_sound(self, sound_name: str) -> None:
+        self.sounds_dict[sound_name].stop()
 
     def change_music(self, music_name: str) -> None:
         if music_name != self.current_music_name:

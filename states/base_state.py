@@ -1,9 +1,12 @@
 """Module which contains class for base state"""
 
+from sounds_and_music_control import AudioController, audio_controller
+
 
 class State:
 
     def __init__(self) -> None:
+        self.audio_controller: AudioController = audio_controller
         self.done = False
         self.next = None
         self.quit = False

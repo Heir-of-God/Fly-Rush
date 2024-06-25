@@ -103,6 +103,7 @@ class MenuState(State):
         self.update_active_button(0)
 
     def startup(self) -> None:
+        self.audio_controller.change_music("menu")
         record: int = self.save_load_system.load_game_data({BEST_SCORE_FILE_NAME: 0})[BEST_SCORE_FILE_NAME]
         self.player_record_surf: pg.Surface = self.font_bauhaus93.render(
             "Your record: " + str(record).zfill(6), True, "#FFD723"
@@ -114,6 +115,7 @@ class MenuState(State):
         if event.type == pg.KEYDOWN:
             pressed_key = event.key
             if pressed_key == pg.K_SPACE:
+                self.audio_controller.play_sound("button_confirm")
                 if self.current_active_button_ind == 0:
                     self.done = True
                     self.next = "gameplay"
@@ -121,12 +123,14 @@ class MenuState(State):
                     self.done = True
                     self.quit = True
                 elif self.current_active_button_ind == 2:
+                    self.audio_controller.flip_volume_status()
                     self.current_volume_button_ind = int(not self.current_volume_button_ind)
                     self.buttons_list[self.current_active_button_ind] = self.volume_buttons[
                         self.current_volume_button_ind
                     ]
 
                 elif self.current_active_button_ind == 3:
+                    self.audio_controller.flip_music_status()
                     self.current_music_button_ind = int(not self.current_music_button_ind)
                     self.buttons_list[self.current_active_button_ind] = self.music_buttons[
                         self.current_music_button_ind
@@ -134,21 +138,29 @@ class MenuState(State):
 
             # change active button in the menu
             elif pressed_key in [pg.K_w, pg.K_a, pg.K_s, pg.K_d]:
+                button_change = False
                 if self.current_active_button_ind == 0 and pressed_key == pg.K_s:
+                    button_change = True
                     self.update_active_button(1)
 
                 elif self.current_active_button_ind == 1:
                     possible_keys: dict[int, int] = {pg.K_w: -1, pg.K_s: 1}
                     if pressed_key in possible_keys:
+                        button_change = True
                         self.update_active_button(self.current_active_button_ind + possible_keys[pressed_key])
 
                 elif self.current_active_button_ind in (2, 3):
                     if pressed_key == pg.K_w:
+                        button_change = True
                         self.update_active_button(1)
                     elif self.current_active_button_ind == 2 and pressed_key == pg.K_d:
+                        button_change = True
                         self.update_active_button(3)
                     elif self.current_active_button_ind == 3 and pressed_key == pg.K_a:
+                        button_change = True
                         self.update_active_button(2)
+                if button_change:
+                    self.audio_controller.play_sound("button_change")
 
     def draw(self, screen) -> None:
         screen.blit(self.background, (0, 0))

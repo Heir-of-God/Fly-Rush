@@ -13,6 +13,7 @@ import pygame as pg
 from background import GameBackground
 from .base_state import State
 from constants import (
+    EXPLOSION_SOUND_VOLUME2,
     PLANE_EXPLOSION_SIZE_COEFFICIENT,
     PLAYER_RELOAD_TIME,
     GAME_SCREEN_WIDTH,
@@ -36,6 +37,7 @@ class MainGameState(State):
     def __init__(self) -> None:
         super().__init__()
         self.save_load_system: GameSaveLoadSystem = GameSaveLoadSystem()
+
         self.game_background: GameBackground = GameBackground()  # Class to move and draw game background
 
         self.player = Player()
@@ -144,6 +146,7 @@ class MainGameState(State):
             self.save_load_system.save_game_data({BEST_SCORE_FILE_NAME: current_player_score})
 
     def startup(self) -> None:
+        self.audio_controller.change_music("gameplay")
         if self.previous != "pause":
             self.reset_game()
 
@@ -160,6 +163,7 @@ class MainGameState(State):
     def get_event(self, event: pg.event.Event) -> None:
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
+                self.audio_controller.play_sound("button_change")
                 self.next = "pause"
                 self.done = True
             if (
@@ -167,6 +171,7 @@ class MainGameState(State):
                 and self.player.coins >= TORPEDO_COIN_PRICE
                 and event.key == pg.K_k
             ):
+                self.audio_controller.play_sound("torpedo")
                 self.torpedo_group.add(Torpedo(*self.player_group.sprite.get_bullet_position()))
                 self.torpedo_reload_timer.set_timer()
                 self.player.add_to_coins(-TORPEDO_COIN_PRICE)
@@ -191,6 +196,7 @@ class MainGameState(State):
     def get_keys(self, keys: pg.key.ScancodeWrapper) -> None:
         # handle keys
         if keys[pg.K_SPACE] and self.player_group.sprite.can_shoot():
+            self.audio_controller.play_sound("shot")
             self.player_group.sprite.set_reload_time(PLAYER_RELOAD_TIME)
             self.player_bullets_group.add(PlayerBullet(*self.player_group.sprite.get_bullet_position()))
 
@@ -218,9 +224,11 @@ class MainGameState(State):
                 False,
                 lambda bull, enem: bull.collide_rect.colliderect(enem.collide_rect),
             )  # get list of enemies which collide with bullet
+
             if killed_enemies:
                 # TOFIX enemies can be killed while they're not even in screen
                 killed: EnemyPlane = killed_enemies[0]
+                self.audio_controller.play_sound("explosion")
                 self.explosion_group.add(Explosion(killed.get_rects_center(), PLANE_EXPLOSION_SIZE_COEFFICIENT))
                 killed.kill()
                 player_bullet.kill()
@@ -235,12 +243,16 @@ class MainGameState(State):
                     lambda _, enem: enem.collide_rect.colliderect(explosion_collide_rect),
                 )
                 torpedo.kill()
+                self.audio_controller.play_sound("explosion", EXPLOSION_SOUND_VOLUME2)
                 self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
+        if len(self.torpedo_group) == 0:
+            self.audio_controller.stop_sound("torpedo")
 
         if not self.player_group.sprite.immortal_timer:  # if player can be damaged now
             hit_bullets: list[EnemyBullet] = self.__get_sprites_collided_with_player(self.enemies_bullets_group)
 
             if hit_bullets:
+                self.audio_controller.play_sound("explosion", EXPLOSION_SOUND_VOLUME2)
                 self.explosion_group.add(
                     Explosion(self.player_group.sprite.rect.center, PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT)
                 )
@@ -252,6 +264,7 @@ class MainGameState(State):
 
         collected_coins: list[Coin] = self.__get_sprites_collided_with_player(self.coins_group)
         for coin in collected_coins:
+            self.audio_controller.play_sound("particle")
             self.particle_effect_group.add(Particle(coin.rect.center))
             self.player.add_to_coins(coin.get_value())
         if collected_coins:
@@ -259,12 +272,14 @@ class MainGameState(State):
 
         collected_stars: list[ScoreStar] = self.__get_sprites_collided_with_player(self.score_stars_group)
         for star in collected_stars:
+            self.audio_controller.play_sound("particle")
             self.particle_effect_group.add(Particle(star.rect.center))
             self.player.add_to_score(star.get_value())
 
         if not self.player.extra_life:
             collected_hearts: list[FlyingHeart] = self.__get_sprites_collided_with_player(self.flying_hearts_group)
             if collected_hearts:
+                self.audio_controller.play_sound("particle")
                 self.particle_effect_group.add(Particle(collected_hearts[0].rect.center))
                 if not self.player.extra_life:
                     self.player.recover_extra_life()
