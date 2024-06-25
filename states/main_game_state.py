@@ -28,6 +28,7 @@ from objects.bullets import PlayerBullet, EnemyBullet
 from objects.flying_objects import Coin, ScoreStar, FlyingHeart
 from objects.super_reload_clock import ReloadTimer
 from objects.torpedo import Torpedo
+from objects.particle import Particle
 from save_load_system import GameSaveLoadSystem
 
 
@@ -52,6 +53,7 @@ class MainGameState(State):
         self.coins_group = pg.sprite.Group()  # Controll all coins
         self.score_stars_group = pg.sprite.Group()  # Controll all score stars
         self.flying_hearts_group = pg.sprite.Group()  # Controll all flying hearts
+        self.particle_effect_group = pg.sprite.Group()  # Controll all particle effects
 
         self.enemy_spawn_event: int = pg.USEREVENT + 1
         self.coin_spawn_event: int = pg.USEREVENT + 2
@@ -68,6 +70,7 @@ class MainGameState(State):
         ReloadTimer.load_graphics()
         Explosion.load_graphics()
         Coin.load_graphics()
+        Particle.load_graphics()
         ScoreStar.load_graphics()
         FlyingHeart.load_graphics()
         self.extra_life_surfs: list[pg.Surface] = [
@@ -120,6 +123,7 @@ class MainGameState(State):
         self.explosion_group.empty()
         self.coins_group.empty()
         self.score_stars_group.empty()
+        self.particle_effect_group.empty()
         self.flying_hearts_group.empty()
         self.player_group.sprite.reset()
         self.player.reset_coins()
@@ -245,11 +249,11 @@ class MainGameState(State):
         collected_coins: list[Coin] = pg.sprite.spritecollide(
             self.player_group.sprite,
             self.coins_group,
-            False,
+            True,
             lambda pl, coin: pl.collide_rect.colliderect(coin.collide_rect),
         )
         for coin in collected_coins:
-            coin.kill()
+            self.particle_effect_group.add(Particle(coin.rect.center))
             self.player.add_to_coins(coin.get_value())
         if collected_coins:
             self.player_coins_surf = self.get_updated_coin_surf()
@@ -257,11 +261,11 @@ class MainGameState(State):
         collected_stars: list[ScoreStar] = pg.sprite.spritecollide(
             self.player_group.sprite,
             self.score_stars_group,
-            False,
+            True,
             lambda pl, star: pl.collide_rect.colliderect(star.collide_rect),
         )
         for star in collected_stars:
-            star.kill()
+            self.particle_effect_group.add(Particle(star.rect.center))
             self.player.add_to_score(star.get_value())
         if collected_stars or killed is not None:
             self.player_score_surf = self.get_updated_score_surf()
@@ -274,6 +278,7 @@ class MainGameState(State):
                 lambda pl, heart: pl.collide_rect.colliderect(heart.collide_rect),
             )
             if collected_hearts:
+                self.particle_effect_group.add(Particle(collected_hearts[0].rect.center))
                 if not self.player.extra_life:
                     self.player.recover_extra_life()
 
@@ -290,6 +295,7 @@ class MainGameState(State):
         self.player_bullets_group.update()
         self.enemies_bullets_group.update()
         self.explosion_group.update()
+        self.particle_effect_group.update()
         self.check_collisions()
         self.game_over_timer -= 1 if self.game_over_timer != -1 else 0
         if self.game_over_timer == 0:
@@ -302,6 +308,7 @@ class MainGameState(State):
         screen.blit(self.player_coins_surf, self.player_coins_rect)
         screen.blit(self.player_score_surf, self.player_score_rect)
         screen.blit(self.extra_life_surfs[self.player.extra_life], self.extra_life_rect)
+        self.particle_effect_group.draw(screen)
         self.torpedo_reload_timer.draw(screen)
         self.player_bullets_group.draw(screen)
         self.enemies_bullets_group.draw(screen)
