@@ -76,4 +76,5 @@ class AudioController:
                 self.music_dict[self.current_music_name].play(loops=-1)
 
 
+pg.mixer.init()
 audio_controller = AudioController()
