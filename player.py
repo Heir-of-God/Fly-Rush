@@ -5,15 +5,15 @@ from objects.planes import PlayerPlane
 
 class Player:
     def __init__(self) -> None:
-        self.player_plane = PlayerPlane()
+        self.extra_life: int = True
         self.score: int = 0
-        self.record: int = 0
         self.coins: int = 0
+
+    def recover_extra_life(self) -> None:
+        self.extra_life = True
 
     def add_to_score(self, value) -> None:
         self.score += value
-        if self.score > self.record:
-            self.record = self.score
 
     def add_to_coins(self, value) -> None:
         self.coins += value

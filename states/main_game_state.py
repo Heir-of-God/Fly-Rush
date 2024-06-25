@@ -13,20 +13,23 @@ import pygame as pg
 from background import GameBackground
 from .base_state import State
 from constants import (
+    EXPLOSION_SOUND_VOLUME2,
     PLANE_EXPLOSION_SIZE_COEFFICIENT,
     PLAYER_RELOAD_TIME,
     GAME_SCREEN_WIDTH,
     BEST_SCORE_FILE_NAME,
     TORPEDO_EXPLOSION_SIZE_COEFFICIENT,
     TORPEDO_COIN_PRICE,
+    PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT,
 )
 from player import Player
 from objects.explosion import Explosion
-from objects.planes import EnemyPlane
+from objects.planes import EnemyPlane, PlayerPlane
 from objects.bullets import PlayerBullet, EnemyBullet
 from objects.flying_objects import Coin, ScoreStar, FlyingHeart
 from objects.super_reload_clock import ReloadTimer
 from objects.torpedo import Torpedo
+from objects.particle import Particle
 from save_load_system import GameSaveLoadSystem
 
 
@@ -34,10 +37,13 @@ class MainGameState(State):
     def __init__(self) -> None:
         super().__init__()
         self.save_load_system: GameSaveLoadSystem = GameSaveLoadSystem()
+
         self.game_background: GameBackground = GameBackground()  # Class to move and draw game background
 
         self.player = Player()
-        self.player_group = pg.sprite.GroupSingle(self.player.player_plane)  # Class to control the player
+        self.player_group = (
+            pg.sprite.GroupSingle()
+        )  # Class to control the player (Player plane added after loading graphics)
         self.player_bullets_group = pg.sprite.Group()  # Class to control player's bullets
 
         self.enemies_group = pg.sprite.Group()  # Class to control enemies
@@ -49,6 +55,7 @@ class MainGameState(State):
         self.coins_group = pg.sprite.Group()  # Controll all coins
         self.score_stars_group = pg.sprite.Group()  # Controll all score stars
         self.flying_hearts_group = pg.sprite.Group()  # Controll all flying hearts
+        self.particle_effect_group = pg.sprite.Group()  # Controll all particle effects
 
         self.enemy_spawn_event: int = pg.USEREVENT + 1
         self.coin_spawn_event: int = pg.USEREVENT + 2
@@ -58,17 +65,26 @@ class MainGameState(State):
         self.set_timers()
 
     def load_graphics(self) -> None:
+        PlayerPlane.load_graphics()
         PlayerBullet.load_graphics()
         EnemyBullet.load_graphics()
         Torpedo.load_graphics()
         ReloadTimer.load_graphics()
         Explosion.load_graphics()
         Coin.load_graphics()
+        Particle.load_graphics()
         ScoreStar.load_graphics()
         FlyingHeart.load_graphics()
+        self.extra_life_surfs: list[pg.Surface] = [
+            pg.transform.rotozoom(
+                pg.image.load(f"assets/graphics/flying_objects/hearts/heart{i}.png"), 0, 0.21
+            ).convert_alpha()
+            for i in range(2)
+        ]
 
     def setup_rects_and_objects(self) -> None:
         """Method to load all needed objects and rects after graphic has been loaded"""
+        self.player_group.add(PlayerPlane())
         self.bauhaus_font: pg.font.Font = pg.font.Font("assets/fonts/bauhaus93.ttf", 34)
 
         self.get_updated_coin_surf: Callable[..., pg.Surface] = lambda: self.bauhaus_font.render(
@@ -92,9 +108,12 @@ class MainGameState(State):
         self.player_score_rect: pg.Rect = self.player_score_surf.get_rect()
         self.player_score_rect.topright = (GAME_SCREEN_WIDTH - 10, 5)
 
+        self.extra_life_rect: pg.Rect = self.extra_life_surfs[0].get_rect(
+            midleft=(self.player_coins_background_rect.right + 5, self.player_coins_background_rect.centery - 4)
+        )
         self.torpedo_reload_timer = ReloadTimer(
-            self.player_coins_background_rect.centerx + 180,
-            self.player_coins_background_rect.centery - 5,
+            self.extra_life_rect.right + 15,
+            self.extra_life_rect.centery,
             "assets/fonts/bauhaus93.ttf",
         )
 
@@ -106,13 +125,17 @@ class MainGameState(State):
         self.explosion_group.empty()
         self.coins_group.empty()
         self.score_stars_group.empty()
+        self.particle_effect_group.empty()
         self.flying_hearts_group.empty()
-        self.player_group.sprite.reset_position()
+        self.player_group.sprite.reset()
         self.player.reset_coins()
         self.player.reset_score()
+        self.player.recover_extra_life()
         self.player_coins_surf = self.get_updated_coin_surf()
         self.player_score_surf = self.get_updated_score_surf()
         self.torpedo_reload_timer.reset_timer()
+        self.game_over_timer: int = -1
+        # if =-1 then game is still running, if 0 game's ended and if >0 then game is over but some animations are still running
 
         self.set_timers()
 
@@ -123,6 +146,7 @@ class MainGameState(State):
             self.save_load_system.save_game_data({BEST_SCORE_FILE_NAME: current_player_score})
 
     def startup(self) -> None:
+        self.audio_controller.change_music("gameplay")
         if self.previous != "pause":
             self.reset_game()
 
@@ -139,6 +163,7 @@ class MainGameState(State):
     def get_event(self, event: pg.event.Event) -> None:
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
+                self.audio_controller.play_sound("button_change")
                 self.next = "pause"
                 self.done = True
             if (
@@ -146,6 +171,7 @@ class MainGameState(State):
                 and self.player.coins >= TORPEDO_COIN_PRICE
                 and event.key == pg.K_k
             ):
+                self.audio_controller.play_sound("torpedo")
                 self.torpedo_group.add(Torpedo(*self.player_group.sprite.get_bullet_position()))
                 self.torpedo_reload_timer.set_timer()
                 self.player.add_to_coins(-TORPEDO_COIN_PRICE)
@@ -170,6 +196,7 @@ class MainGameState(State):
     def get_keys(self, keys: pg.key.ScancodeWrapper) -> None:
         # handle keys
         if keys[pg.K_SPACE] and self.player_group.sprite.can_shoot():
+            self.audio_controller.play_sound("shot")
             self.player_group.sprite.set_reload_time(PLAYER_RELOAD_TIME)
             self.player_bullets_group.add(PlayerBullet(*self.player_group.sprite.get_bullet_position()))
 
@@ -178,6 +205,15 @@ class MainGameState(State):
             if enemy.can_shoot():
                 self.enemies_bullets_group.add(EnemyBullet(*enemy.get_bullet_position()))
                 enemy.update_reload_time()
+
+    def __get_sprites_collided_with_player(self, group: pg.sprite.Group, kill_sprites: bool = True) -> list:
+        """Returns a list of sprites of passed group which colliding with player"""
+        return pg.sprite.spritecollide(
+            self.player_group.sprite,
+            group,
+            kill_sprites,
+            lambda pl, group_object: pl.collide_rect.colliderect(group_object.collide_rect),
+        )
 
     def check_collisions(self) -> None:
         killed = None
@@ -188,9 +224,11 @@ class MainGameState(State):
                 False,
                 lambda bull, enem: bull.collide_rect.colliderect(enem.collide_rect),
             )  # get list of enemies which collide with bullet
+
             if killed_enemies:
                 # TOFIX enemies can be killed while they're not even in screen
                 killed: EnemyPlane = killed_enemies[0]
+                self.audio_controller.play_sound("explosion")
                 self.explosion_group.add(Explosion(killed.get_rects_center(), PLANE_EXPLOSION_SIZE_COEFFICIENT))
                 killed.kill()
                 player_bullet.kill()
@@ -205,39 +243,48 @@ class MainGameState(State):
                     lambda _, enem: enem.collide_rect.colliderect(explosion_collide_rect),
                 )
                 torpedo.kill()
+                self.audio_controller.play_sound("explosion", EXPLOSION_SOUND_VOLUME2)
                 self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
+        if len(self.torpedo_group) == 0:
+            self.audio_controller.stop_sound("torpedo")
 
-        if pg.sprite.groupcollide(
-            self.player_group,
-            self.enemies_bullets_group,
-            False,
-            False,
-            lambda pl, bull: pl.collide_rect.colliderect(bull.collide_rect),
-        ):
-            self.done = True
-            self.next = "game_over"
+        if not self.player_group.sprite.immortal_timer:  # if player can be damaged now
+            hit_bullets: list[EnemyBullet] = self.__get_sprites_collided_with_player(self.enemies_bullets_group)
 
-        collected_coins: list[Coin] = pg.sprite.spritecollide(
-            self.player_group.sprite,
-            self.coins_group,
-            False,
-            lambda pl, coin: pl.collide_rect.colliderect(coin.collide_rect),
-        )
+            if hit_bullets:
+                self.audio_controller.play_sound("explosion", EXPLOSION_SOUND_VOLUME2)
+                self.explosion_group.add(
+                    Explosion(self.player_group.sprite.rect.center, PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT)
+                )
+                if self.player.extra_life:
+                    self.player_group.sprite.make_immortal()
+                    self.player.extra_life = not self.player.extra_life
+                else:
+                    self.game_over_timer = 12  # So explosion animation can progress
+
+        collected_coins: list[Coin] = self.__get_sprites_collided_with_player(self.coins_group)
         for coin in collected_coins:
-            coin.kill()
+            self.audio_controller.play_sound("particle")
+            self.particle_effect_group.add(Particle(coin.rect.center))
             self.player.add_to_coins(coin.get_value())
         if collected_coins:
             self.player_coins_surf = self.get_updated_coin_surf()
 
-        collected_stars: list[ScoreStar] = pg.sprite.spritecollide(
-            self.player_group.sprite,
-            self.score_stars_group,
-            False,
-            lambda pl, star: pl.collide_rect.colliderect(star.collide_rect),
-        )
+        collected_stars: list[ScoreStar] = self.__get_sprites_collided_with_player(self.score_stars_group)
         for star in collected_stars:
-            star.kill()
+            self.audio_controller.play_sound("particle")
+            self.particle_effect_group.add(Particle(star.rect.center))
             self.player.add_to_score(star.get_value())
+
+        if not self.player.extra_life:
+            collected_hearts: list[FlyingHeart] = self.__get_sprites_collided_with_player(self.flying_hearts_group)
+            if collected_hearts:
+                self.audio_controller.play_sound("particle")
+                self.particle_effect_group.add(Particle(collected_hearts[0].rect.center))
+                if not self.player.extra_life:
+                    self.player.recover_extra_life()
+
+        # conditions to update score surf
         if collected_stars or killed is not None:
             self.player_score_surf = self.get_updated_score_surf()
 
@@ -254,13 +301,20 @@ class MainGameState(State):
         self.player_bullets_group.update()
         self.enemies_bullets_group.update()
         self.explosion_group.update()
+        self.particle_effect_group.update()
         self.check_collisions()
+        self.game_over_timer -= 1 if self.game_over_timer != -1 else 0
+        if self.game_over_timer == 0:
+            self.done = True
+            self.next = "game_over"
 
     def draw(self, screen) -> None:
         self.game_background.draw_background(screen)
         screen.blit(self.player_coins_background, self.player_coins_background_rect)
         screen.blit(self.player_coins_surf, self.player_coins_rect)
         screen.blit(self.player_score_surf, self.player_score_rect)
+        screen.blit(self.extra_life_surfs[self.player.extra_life], self.extra_life_rect)
+        self.particle_effect_group.draw(screen)
         self.torpedo_reload_timer.draw(screen)
         self.player_bullets_group.draw(screen)
         self.enemies_bullets_group.draw(screen)
@@ -268,6 +322,7 @@ class MainGameState(State):
         self.coins_group.draw(screen)
         self.score_stars_group.draw(screen)
         self.flying_hearts_group.draw(screen)
-        self.player_group.draw(screen)
+        if self.game_over_timer == -1:
+            self.player_group.draw(screen)
         self.enemies_group.draw(screen)
         self.explosion_group.draw(screen)

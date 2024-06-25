@@ -59,6 +59,7 @@ class GameOverState(State):
         if event.type == pg.KEYDOWN:
             pressed_key = event.key
             if pressed_key == pg.K_SPACE:
+                self.audio_controller.play_sound("button_confirm")
                 self.done = True
                 if self.current_active_button_ind == 0:
                     self.next = "gameplay"
@@ -66,10 +67,15 @@ class GameOverState(State):
                     self.next = "menu"
 
             # change active button in the game_over
-            elif self.current_active_button_ind == 1 and pressed_key == pg.K_w:
+            changed_button = False
+            if self.current_active_button_ind == 1 and pressed_key == pg.K_w:
+                changed_button = True
                 self.update_active_button(0)
             elif self.current_active_button_ind == 0 and pressed_key == pg.K_s:
+                changed_button = True
                 self.update_active_button(1)
+            if changed_button:
+                self.audio_controller.play_sound("button_change")
 
     def draw(self, screen) -> None:
         screen.blit(self.game_over_title_bg, self.game_over_bg_rect)

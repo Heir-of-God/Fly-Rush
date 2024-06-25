@@ -10,6 +10,20 @@ FPS: int = 60
 GAME_SCREEN_WIDTH: int = 1413
 GAME_SCREEN_HEIGHT: int = 768
 
+# Game sounds volume
+TORPEDO_SOUND_VOLUME: float = 0.2
+GAME_OVER_SOUND_VOLUME: float = 0.15
+SHOT_SOUND_VOLUME: float = 0.05
+BUTTON_CHANGE_SOUND_VOLUME: float = 0.2
+BUTTON_CONFIRM_SOUND_VOLUME: float = 0.2
+PARTICLE_SOUND_VOLUME: float = 0.4
+EXPLOSION_SOUND_VOLUME1: float = 0.3  # This volume will be applied for enemies
+EXPLOSION_SOUND_VOLUME2: float = 0.4  # This volume will be applied for player and torpedo
+
+# Music volume
+MENU_MUSIC_VOLUME: float = 0.2
+GAMEPLAY_MUSIC_VOLUME: float = 0.2
+
 # Game background
 BACKGROUND_SPEED = 2  # px per frame
 
@@ -21,6 +35,8 @@ PLAYER_BULLET_SPEED: int = 12  # px per frame
 PLAYER_RELOAD_TIME: int = 25  # frames to reload
 PLAYER_START_X: int = 706.5  # start player position on x axis
 PLAYER_START_y: int = 384  # start player pisutuib on y axis
+PLAYER_IMMORTAL_AFTER_HIT: int = 90  # How many frames player will be immortal after one bullet hits him
+PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT: float = 0.5  # value which set the size of explosion animation
 
 # Enemies
 ENEMY_SPEED_X = 5  # px per frame
