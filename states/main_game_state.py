@@ -200,6 +200,15 @@ class MainGameState(State):
                 self.enemies_bullets_group.add(EnemyBullet(*enemy.get_bullet_position()))
                 enemy.update_reload_time()
 
+    def __get_sprites_collided_with_player(self, group: pg.sprite.Group, kill_sprites: bool = True) -> list:
+        """Returns a list of sprites of passed group which colliding with player"""
+        return pg.sprite.spritecollide(
+            self.player_group.sprite,
+            group,
+            kill_sprites,
+            lambda pl, group_object: pl.collide_rect.colliderect(group_object.collide_rect),
+        )
+
     def check_collisions(self) -> None:
         killed = None
         for player_bullet in self.player_bullets_group.sprites():
@@ -229,14 +238,9 @@ class MainGameState(State):
                 self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
 
         if not self.player_group.sprite.immortal_timer:  # if player can be damaged now
-            bullets_attacked_player: list[EnemyBullet] = pg.sprite.spritecollide(
-                self.player_group.sprite,
-                self.enemies_bullets_group,
-                True,
-                lambda pl, bull: pl.collide_rect.colliderect(bull.collide_rect),
-            )
+            hit_bullets: list[EnemyBullet] = self.__get_sprites_collided_with_player(self.enemies_bullets_group)
 
-            if bullets_attacked_player:
+            if hit_bullets:
                 self.explosion_group.add(
                     Explosion(self.player_group.sprite.rect.center, PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT)
                 )
@@ -246,41 +250,28 @@ class MainGameState(State):
                 else:
                     self.game_over_timer = 12  # So explosion animation can progress
 
-        collected_coins: list[Coin] = pg.sprite.spritecollide(
-            self.player_group.sprite,
-            self.coins_group,
-            True,
-            lambda pl, coin: pl.collide_rect.colliderect(coin.collide_rect),
-        )
+        collected_coins: list[Coin] = self.__get_sprites_collided_with_player(self.coins_group)
         for coin in collected_coins:
             self.particle_effect_group.add(Particle(coin.rect.center))
             self.player.add_to_coins(coin.get_value())
         if collected_coins:
             self.player_coins_surf = self.get_updated_coin_surf()
 
-        collected_stars: list[ScoreStar] = pg.sprite.spritecollide(
-            self.player_group.sprite,
-            self.score_stars_group,
-            True,
-            lambda pl, star: pl.collide_rect.colliderect(star.collide_rect),
-        )
+        collected_stars: list[ScoreStar] = self.__get_sprites_collided_with_player(self.score_stars_group)
         for star in collected_stars:
             self.particle_effect_group.add(Particle(star.rect.center))
             self.player.add_to_score(star.get_value())
-        if collected_stars or killed is not None:
-            self.player_score_surf = self.get_updated_score_surf()
 
         if not self.player.extra_life:
-            collected_hearts: list[FlyingHeart] = pg.sprite.spritecollide(
-                self.player_group.sprite,
-                self.flying_hearts_group,
-                True,
-                lambda pl, heart: pl.collide_rect.colliderect(heart.collide_rect),
-            )
+            collected_hearts: list[FlyingHeart] = self.__get_sprites_collided_with_player(self.flying_hearts_group)
             if collected_hearts:
                 self.particle_effect_group.add(Particle(collected_hearts[0].rect.center))
                 if not self.player.extra_life:
                     self.player.recover_extra_life()
+
+        # conditions to update score surf
+        if collected_stars or killed is not None:
+            self.player_score_surf = self.get_updated_score_surf()
 
     def update(self) -> None:
         """Method which updates all game with its logic"""
