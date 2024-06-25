@@ -22,6 +22,7 @@ PLAYER_RELOAD_TIME: int = 25  # frames to reload
 PLAYER_START_X: int = 706.5  # start player position on x axis
 PLAYER_START_y: int = 384  # start player pisutuib on y axis
 PLAYER_IMMORTAL_AFTER_HIT: int = 90  # How many frames player will be immortal after one bullet hits him
+PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT: float = 0.5  # value which set the size of explosion animation
 
 # Enemies
 ENEMY_SPEED_X = 5  # px per frame

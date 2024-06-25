@@ -19,6 +19,7 @@ from constants import (
     BEST_SCORE_FILE_NAME,
     TORPEDO_EXPLOSION_SIZE_COEFFICIENT,
     TORPEDO_COIN_PRICE,
+    PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT,
 )
 from player import Player
 from objects.explosion import Explosion
@@ -127,6 +128,8 @@ class MainGameState(State):
         self.player_coins_surf = self.get_updated_coin_surf()
         self.player_score_surf = self.get_updated_score_surf()
         self.torpedo_reload_timer.reset_timer()
+        self.game_over_timer: int = -1
+        # if =-1 then game is still running, if 0 game's ended and if >0 then game is over but some animations are still running
 
         self.set_timers()
 
@@ -221,7 +224,7 @@ class MainGameState(State):
                 torpedo.kill()
                 self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
 
-        if not self.player_group.sprite.immortal_timer:
+        if not self.player_group.sprite.immortal_timer:  # if player can be damaged now
             bullets_attacked_player: list[EnemyBullet] = pg.sprite.spritecollide(
                 self.player_group.sprite,
                 self.enemies_bullets_group,
@@ -230,16 +233,14 @@ class MainGameState(State):
             )
 
             if bullets_attacked_player:
-                bullet_to_create_explosion: EnemyBullet = bullets_attacked_player[0]
                 self.explosion_group.add(
-                    Explosion(bullet_to_create_explosion.rect.center, PLANE_EXPLOSION_SIZE_COEFFICIENT)
+                    Explosion(self.player_group.sprite.rect.center, PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT)
                 )
                 if self.player.extra_life:
                     self.player_group.sprite.make_immortal()
                     self.player.extra_life = not self.player.extra_life
                 else:
-                    self.done = True
-                    self.next = "game_over"
+                    self.game_over_timer = 12  # So explosion animation can progress
 
         collected_coins: list[Coin] = pg.sprite.spritecollide(
             self.player_group.sprite,
@@ -290,6 +291,10 @@ class MainGameState(State):
         self.enemies_bullets_group.update()
         self.explosion_group.update()
         self.check_collisions()
+        self.game_over_timer -= 1 if self.game_over_timer != -1 else 0
+        if self.game_over_timer == 0:
+            self.done = True
+            self.next = "game_over"
 
     def draw(self, screen) -> None:
         self.game_background.draw_background(screen)
@@ -304,6 +309,7 @@ class MainGameState(State):
         self.coins_group.draw(screen)
         self.score_stars_group.draw(screen)
         self.flying_hearts_group.draw(screen)
-        self.player_group.draw(screen)
+        if self.game_over_timer == -1:
+            self.player_group.draw(screen)
         self.enemies_group.draw(screen)
         self.explosion_group.draw(screen)
