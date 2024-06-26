@@ -249,9 +249,18 @@ class MainGameState(State):
             self.audio_controller.stop_sound("torpedo")
 
         if not self.player_group.sprite.immortal_timer:  # if player can be damaged now
+            player_damaged = False
             hit_bullets: list[EnemyBullet] = self.__get_sprites_collided_with_player(self.enemies_bullets_group)
-
             if hit_bullets:
+                player_damaged = True
+            else:  # if player still has immortal status
+                collided_planes: list[EnemyPlane] = self.__get_sprites_collided_with_player(self.enemies_group)
+                if collided_planes:
+                    dead_enemy = collided_planes[0]
+                    self.explosion_group.add(Explosion(dead_enemy.rect.center, PLANE_EXPLOSION_SIZE_COEFFICIENT))
+                    player_damaged = True
+
+            if player_damaged:
                 self.audio_controller.play_sound("explosion", EXPLOSION_SOUND_VOLUME2)
                 self.explosion_group.add(
                     Explosion(self.player_group.sprite.rect.center, PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT)
