@@ -233,7 +233,6 @@ class MainGameState(State):
             if killed_by_this_bullet:
                 player_bullet.kill()
                 killed_enemies.append(killed_by_this_bullet[0])
-                # TOFIX enemies can be killed while they're not even in screen
 
         for torpedo in self.torpedo_group:
             if torpedo.is_ready_to_explode():
@@ -251,6 +250,7 @@ class MainGameState(State):
                 self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
         if len(self.torpedo_group) == 0:
             self.audio_controller.stop_sound("torpedo")
+        killed_enemies = [enemy for enemy in killed_enemies if not enemy.is_immortal]
         if killed_enemies:
             self.audio_controller.play_sound("explosion")
         for killed_enemy in killed_enemies:
