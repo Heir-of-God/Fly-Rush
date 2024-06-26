@@ -13,15 +13,24 @@ import pygame as pg
 from background import GameBackground
 from .base_state import State
 from constants import (
+    COIN_SPAWN_EVENT_TIMER,
+    ENEMY_SPAWN_EVENT_TIMER,
     EXPLOSION_SOUND_VOLUME2,
+    FLYING_HEART_SPAWN_EVENT_TIMER,
     PLANE_EXPLOSION_SIZE_COEFFICIENT,
     PLAYER_RELOAD_TIME,
     GAME_SCREEN_WIDTH,
     BEST_SCORE_FILE_NAME,
+    SCORE_ADD_EVENT_TIMER,
+    STAR_SPAWN_EVENT_TIMER,
     TORPEDO_EXPLOSION_SIZE_COEFFICIENT,
     TORPEDO_COIN_PRICE,
     PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT,
     ENEMY_SCORE_RANGE,
+    COIN_SPAWN_EVENT_CHANCE_DENOMINATOR,
+    STAR_SPAWN_EVENT_CHANCE_DENOMINATOR,
+    ENEMY_SPAWN_EVENT_CHANCE_DENOMINATOR,
+    FLYING_HEART_SPAWN_EVENT_CHANCE_DENOMINATOR,
 )
 from player import Player
 from objects.explosion import Explosion
@@ -57,11 +66,6 @@ class MainGameState(State):
         self.score_stars_group = pg.sprite.Group()  # Controll all score stars
         self.flying_hearts_group = pg.sprite.Group()  # Controll all flying hearts
         self.particle_effect_group = pg.sprite.Group()  # Controll all particle effects
-
-        self.enemy_spawn_event: int = pg.USEREVENT + 1
-        self.coin_spawn_event: int = pg.USEREVENT + 2
-        self.star_spawn_event: int = pg.USEREVENT + 3
-        self.flying_heart_spawn_event: int = pg.USEREVENT + 4
 
         self.set_timers()
 
@@ -156,11 +160,18 @@ class MainGameState(State):
         self.update_record()
 
     def set_timers(self) -> None:
-        # TOFIX Pygame events running even when paused, rework them with conunters inside game state
-        pg.time.set_timer(self.enemy_spawn_event, 1500)
-        pg.time.set_timer(self.coin_spawn_event, 6000)
-        pg.time.set_timer(self.star_spawn_event, 6000)
-        pg.time.set_timer(self.flying_heart_spawn_event, 8000)
+        self.enemy_spawn_event_timer: int = ENEMY_SPAWN_EVENT_TIMER
+        self.coin_spawn_event_timer: int = COIN_SPAWN_EVENT_TIMER
+        self.star_spawn_event_timer: int = STAR_SPAWN_EVENT_TIMER
+        self.flying_heart_spawn_event_timer: int = FLYING_HEART_SPAWN_EVENT_TIMER
+        self.score_add_event_timer: int = SCORE_ADD_EVENT_TIMER
+
+    def update_timers(self) -> None:
+        self.enemy_spawn_event_timer -= 1
+        self.coin_spawn_event_timer -= 1
+        self.star_spawn_event_timer -= 1
+        self.flying_heart_spawn_event_timer -= 1
+        self.score_add_event_timer -= 1
 
     def get_event(self, event: pg.event.Event) -> None:
         if event.type == pg.KEYDOWN:
@@ -178,22 +189,31 @@ class MainGameState(State):
                 self.torpedo_reload_timer.set_timer()
                 self.player.add_to_coins(-TORPEDO_COIN_PRICE)
 
-        elif event.type == self.enemy_spawn_event:
-            if randint(0, 3):
+    def manage_own_events(self) -> None:
+        if self.enemy_spawn_event_timer <= 0:
+            if not randint(0, ENEMY_SPAWN_EVENT_CHANCE_DENOMINATOR - 1):
                 if len(self.enemies_group) < 16:
                     self.enemies_group.add(EnemyPlane())
+            self.enemy_spawn_event_timer = ENEMY_SPAWN_EVENT_TIMER
 
-        elif event.type == self.coin_spawn_event:
-            if randint(1, 3):  # Now spawning always. TODO (TOCHANGE)
+        if self.coin_spawn_event_timer <= 0:
+            if not randint(0, COIN_SPAWN_EVENT_CHANCE_DENOMINATOR - 1):
                 self.coins_group.add(Coin())
+            self.coin_spawn_event_timer = COIN_SPAWN_EVENT_TIMER
 
-        elif event.type == self.star_spawn_event:
-            if randint(1, 2):
+        if self.star_spawn_event_timer <= 0:
+            if not randint(0, STAR_SPAWN_EVENT_CHANCE_DENOMINATOR - 1):
                 self.score_stars_group.add(ScoreStar())
+            self.star_spawn_event_timer = STAR_SPAWN_EVENT_TIMER
 
-        elif event.type == self.flying_heart_spawn_event:
-            if randint(1, 2):
+        if self.flying_heart_spawn_event_timer <= 0:
+            if not randint(0, FLYING_HEART_SPAWN_EVENT_CHANCE_DENOMINATOR - 1):
                 self.flying_hearts_group.add(FlyingHeart())
+            self.flying_heart_spawn_event_timer = FLYING_HEART_SPAWN_EVENT_TIMER
+
+        if self.score_add_event_timer <= 0:
+            self.player.add_to_score(randint(2, 5))
+            self.score_add_event_timer = SCORE_ADD_EVENT_TIMER
 
     def get_keys(self, keys: pg.key.ScancodeWrapper) -> None:
         # handle keys
@@ -302,6 +322,8 @@ class MainGameState(State):
 
     def update(self) -> None:
         """Method which updates all game with its logic"""
+        self.update_timers()
+        self.manage_own_events()
         self.game_background.move_background()
         self.player_group.update()
         self.enemies_group.update()
@@ -319,7 +341,6 @@ class MainGameState(State):
         if self.player.score != self.last_score_value:
             self.last_score_value = self.player.score
             self.player_score_surf = self.get_updated_score_surf()
-
         self.game_over_timer -= 1 if self.game_over_timer != -1 else 0
         if self.game_over_timer == 0:
             self.done = True

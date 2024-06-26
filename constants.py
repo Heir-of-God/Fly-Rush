@@ -20,6 +20,20 @@ PARTICLE_SOUND_VOLUME: float = 0.4
 EXPLOSION_SOUND_VOLUME1: float = 0.3  # This volume will be applied for enemies
 EXPLOSION_SOUND_VOLUME2: float = 0.4  # This volume will be applied for player and torpedo
 
+# Game timers in milliseconds how often some event will have chance to occur
+ENEMY_SPAWN_EVENT_TIMER: int = 1200
+COIN_SPAWN_EVENT_TIMER: int = 8000
+STAR_SPAWN_EVENT_TIMER: int = 7000
+FLYING_HEART_SPAWN_EVENT_TIMER: int = 15000
+SCORE_ADD_EVENT_TIMER: int = 1000
+
+# Event chances (the chance that event will ocur is 1/{value specified})
+ENEMY_SPAWN_EVENT_CHANCE_DENOMINATOR: int = 2
+COIN_SPAWN_EVENT_CHANCE_DENOMINATOR: int = 3
+STAR_SPAWN_EVENT_CHANCE_DENOMINATOR: int = 2
+FLYING_HEART_SPAWN_EVENT_CHANCE_DENOMINATOR: int = 2
+
+
 # Music volume
 MENU_MUSIC_VOLUME: float = 0.2
 GAMEPLAY_MUSIC_VOLUME: float = 0.2
@@ -93,3 +107,11 @@ TORPEDO_EXPLOSION_SIZE_COEFFICIENT: float = (
     0.7  # value which set the size of explosion animation (impacts only on visual effect)
 )
 TORPEDO_COIN_PRICE: int = 10  # Price for player to launch torpedo
+
+
+# PREPARE TIMERS TO CALCULATE AMOUNT OF FRAMES INSTEAD OF MILLISECONDS (DON'T CHANGE)
+ENEMY_SPAWN_EVENT_TIMER: int = round(ENEMY_SPAWN_EVENT_TIMER / 1000) * FPS
+COIN_SPAWN_EVENT_TIMER: int = round(COIN_SPAWN_EVENT_TIMER / 1000) * FPS
+STAR_SPAWN_EVENT_TIMER: int = round(STAR_SPAWN_EVENT_TIMER / 1000) * FPS
+FLYING_HEART_SPAWN_EVENT_TIMER: int = round(FLYING_HEART_SPAWN_EVENT_TIMER / 1000) * FPS
+SCORE_ADD_EVENT_TIMER: int = round(SCORE_ADD_EVENT_TIMER / 1000) * FPS
