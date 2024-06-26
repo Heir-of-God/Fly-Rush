@@ -44,6 +44,7 @@ ENEMY_SPEED_Y = 1  # px per frame
 ENEMY_DELTA_Y: tuple[int, int] = (90, 280)  # (minimum, maximum) delta y on which enemy's plane can deviate
 ENEMY_BULLET_SPEED: int = 12  # px per frame
 ENEMY_RELOAD_RANGE: tuple[int, int] = (90, 180)  # (minimum, maximum) frames until EnemyPlane can shoot again
+ENEMY_SCORE_RANGE: tuple[int, int] = (4, 16)  # (minimum, maximum) score player will get for killing enemy
 
 # Explosions
 PLANE_EXPLOSION_SIZE_COEFFICIENT: float = 0.35  # value which set the size of explosion animation

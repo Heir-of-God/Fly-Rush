@@ -21,6 +21,7 @@ from constants import (
     TORPEDO_EXPLOSION_SIZE_COEFFICIENT,
     TORPEDO_COIN_PRICE,
     PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT,
+    ENEMY_SCORE_RANGE,
 )
 from player import Player
 from objects.explosion import Explosion
@@ -135,6 +136,7 @@ class MainGameState(State):
         self.player_score_surf = self.get_updated_score_surf()
         self.torpedo_reload_timer.reset_timer()
         self.game_over_timer: int = -1
+        self.last_score_value: int = self.player.score
         # if =-1 then game is still running, if 0 game's ended and if >0 then game is over but some animations are still running
 
         self.set_timers()
@@ -215,38 +217,46 @@ class MainGameState(State):
             lambda pl, group_object: pl.collide_rect.colliderect(group_object.collide_rect),
         )
 
+    def __spawn_particle(self, rect_center: tuple[int, int]) -> None:
+        self.audio_controller.play_sound("particle")
+        self.particle_effect_group.add(Particle(rect_center))
+
     def check_collisions(self) -> None:
-        killed = None
+        killed_enemies: list[EnemyPlane] = []  # list which collects every killed enemy
         for player_bullet in self.player_bullets_group.sprites():
-            killed_enemies: list[EnemyPlane] = pg.sprite.spritecollide(
+            killed_by_this_bullet: list[EnemyPlane] = pg.sprite.spritecollide(
                 player_bullet,
                 self.enemies_group,
                 False,
                 lambda bull, enem: bull.collide_rect.colliderect(enem.collide_rect),
             )  # get list of enemies which collide with bullet
-
-            if killed_enemies:
-                # TOFIX enemies can be killed while they're not even in screen
-                killed: EnemyPlane = killed_enemies[0]
-                self.audio_controller.play_sound("explosion")
-                self.explosion_group.add(Explosion(killed.get_rects_center(), PLANE_EXPLOSION_SIZE_COEFFICIENT))
-                killed.kill()
+            if killed_by_this_bullet:
                 player_bullet.kill()
+                killed_enemies.append(killed_by_this_bullet[0])
+                # TOFIX enemies can be killed while they're not even in screen
 
         for torpedo in self.torpedo_group:
             if torpedo.is_ready_to_explode():
                 explosion_collide_rect: pg.Rect = torpedo.get_explosion_rect()
-                pg.sprite.spritecollide(
-                    torpedo,
-                    self.enemies_group,
-                    True,
-                    lambda _, enem: enem.collide_rect.colliderect(explosion_collide_rect),
+                killed_enemies.extend(
+                    pg.sprite.spritecollide(
+                        torpedo,
+                        self.enemies_group,
+                        False,
+                        lambda _, enem: enem.collide_rect.colliderect(explosion_collide_rect),
+                    )
                 )
                 torpedo.kill()
                 self.audio_controller.play_sound("explosion", EXPLOSION_SOUND_VOLUME2)
                 self.explosion_group.add(Explosion(explosion_collide_rect.center, TORPEDO_EXPLOSION_SIZE_COEFFICIENT))
         if len(self.torpedo_group) == 0:
             self.audio_controller.stop_sound("torpedo")
+        if killed_enemies:
+            self.audio_controller.play_sound("explosion")
+        for killed_enemy in killed_enemies:
+            killed_enemy.kill()
+            self.player.add_to_score(randint(ENEMY_SCORE_RANGE[0], ENEMY_SCORE_RANGE[1]))
+            self.explosion_group.add(Explosion(killed_enemy.get_rects_center(), PLANE_EXPLOSION_SIZE_COEFFICIENT))
 
         if not self.player_group.sprite.immortal_timer:  # if player can be damaged now
             player_damaged = False
@@ -273,29 +283,22 @@ class MainGameState(State):
 
         collected_coins: list[Coin] = self.__get_sprites_collided_with_player(self.coins_group)
         for coin in collected_coins:
-            self.audio_controller.play_sound("particle")
-            self.particle_effect_group.add(Particle(coin.rect.center))
+            self.__spawn_particle(coin.rect.center)
             self.player.add_to_coins(coin.get_value())
         if collected_coins:
             self.player_coins_surf = self.get_updated_coin_surf()
 
         collected_stars: list[ScoreStar] = self.__get_sprites_collided_with_player(self.score_stars_group)
         for star in collected_stars:
-            self.audio_controller.play_sound("particle")
-            self.particle_effect_group.add(Particle(star.rect.center))
+            self.__spawn_particle(star.rect.center)
             self.player.add_to_score(star.get_value())
 
         if not self.player.extra_life:
             collected_hearts: list[FlyingHeart] = self.__get_sprites_collided_with_player(self.flying_hearts_group)
             if collected_hearts:
-                self.audio_controller.play_sound("particle")
-                self.particle_effect_group.add(Particle(collected_hearts[0].rect.center))
+                self.__spawn_particle(collected_hearts[0].rect.center)
                 if not self.player.extra_life:
                     self.player.recover_extra_life()
-
-        # conditions to update score surf
-        if collected_stars or killed is not None:
-            self.player_score_surf = self.get_updated_score_surf()
 
     def update(self) -> None:
         """Method which updates all game with its logic"""
@@ -312,6 +315,11 @@ class MainGameState(State):
         self.explosion_group.update()
         self.particle_effect_group.update()
         self.check_collisions()
+        # update score surf if score was changed
+        if self.player.score != self.last_score_value:
+            self.last_score_value = self.player.score
+            self.player_score_surf = self.get_updated_score_surf()
+
         self.game_over_timer -= 1 if self.game_over_timer != -1 else 0
         if self.game_over_timer == 0:
             self.done = True
