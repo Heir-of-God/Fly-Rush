@@ -12,7 +12,7 @@ GAME_SCREEN_HEIGHT: int = 768
 
 # Game sounds volume
 TORPEDO_SOUND_VOLUME: float = 0.2
-GAME_OVER_SOUND_VOLUME: float = 0.15
+GAME_OVER_SOUND_VOLUME: float = 0.35
 SHOT_SOUND_VOLUME: float = 0.05
 BUTTON_CHANGE_SOUND_VOLUME: float = 0.2
 BUTTON_CONFIRM_SOUND_VOLUME: float = 0.2
@@ -33,7 +33,6 @@ COIN_SPAWN_EVENT_CHANCE_DENOMINATOR: int = 3
 STAR_SPAWN_EVENT_CHANCE_DENOMINATOR: int = 2
 FLYING_HEART_SPAWN_EVENT_CHANCE_DENOMINATOR: int = 2
 
-
 # Music volume
 MENU_MUSIC_VOLUME: float = 0.2
 GAMEPLAY_MUSIC_VOLUME: float = 0.2
@@ -46,13 +45,14 @@ PLAYER_SPEED_Y: int = 8  # px per frame
 PLAYER_SPEED_X_RIGHT: int = 10  # px per frame
 PLAYER_SPEED_X_LEFT: int = 7  # px per frame
 PLAYER_BULLET_SPEED: int = 12  # px per frame
-PLAYER_RELOAD_TIME: int = 25  # frames to reload
+PLAYER_RELOAD_TIME: int = 30  # frames to reload
 PLAYER_START_X: int = 706.5  # start player position on x axis
 PLAYER_START_y: int = 384  # start player pisutuib on y axis
 PLAYER_IMMORTAL_AFTER_HIT: int = 90  # How many frames player will be immortal after one bullet hits him
 PLAYER_PLANE_EXPLOSION_SIZE_COEFFICIENT: float = 0.5  # value which set the size of explosion animation
 
 # Enemies
+MAXIMUM_NUMBER_OF_ENEMIES_ON_THE_SCREEN: int = 25
 ENEMY_SPEED_X = 5  # px per frame
 ENEMY_SPEED_Y = 1  # px per frame
 ENEMY_DELTA_Y: tuple[int, int] = (90, 280)  # (minimum, maximum) delta y on which enemy's plane can deviate

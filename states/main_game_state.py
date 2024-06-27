@@ -17,6 +17,7 @@ from constants import (
     ENEMY_SPAWN_EVENT_TIMER,
     EXPLOSION_SOUND_VOLUME2,
     FLYING_HEART_SPAWN_EVENT_TIMER,
+    MAXIMUM_NUMBER_OF_ENEMIES_ON_THE_SCREEN,
     PLANE_EXPLOSION_SIZE_COEFFICIENT,
     PLAYER_RELOAD_TIME,
     GAME_SCREEN_WIDTH,
@@ -193,7 +194,7 @@ class MainGameState(State):
     def manage_own_events(self) -> None:
         if self.enemy_spawn_event_timer <= 0:
             if not randint(0, ENEMY_SPAWN_EVENT_CHANCE_DENOMINATOR - 1):
-                if len(self.enemies_group) < 16:
+                if len(self.enemies_group) < MAXIMUM_NUMBER_OF_ENEMIES_ON_THE_SCREEN:
                     self.enemies_group.add(EnemyPlane())
             self.enemy_spawn_event_timer = ENEMY_SPAWN_EVENT_TIMER
 

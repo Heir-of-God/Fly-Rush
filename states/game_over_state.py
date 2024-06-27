@@ -51,6 +51,9 @@ class GameOverState(State):
         self.current_active_button_ind = 0
         self.buttons_list[self.current_active_button_ind].change_active()
 
+    def startup(self) -> None:
+        self.audio_controller.play_sound("game_over")
+
     def cleanup(self) -> None:
         super().cleanup()
         self.update_active_button(0)
