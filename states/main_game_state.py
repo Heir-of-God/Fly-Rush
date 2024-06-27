@@ -188,6 +188,7 @@ class MainGameState(State):
                 self.torpedo_group.add(Torpedo(*self.player_group.sprite.get_bullet_position()))
                 self.torpedo_reload_timer.set_timer()
                 self.player.add_to_coins(-TORPEDO_COIN_PRICE)
+                self.player_coins_surf = self.get_updated_coin_surf()
 
     def manage_own_events(self) -> None:
         if self.enemy_spawn_event_timer <= 0:
