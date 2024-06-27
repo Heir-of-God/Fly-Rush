@@ -139,6 +139,7 @@ class EnemyPlane(Plane):
         self.speed_y: int = choice([ENEMY_SPEED_Y, -ENEMY_SPEED_Y])  # randomly go from start to bottom or to the top
         self.pos_y_delta: int = randint(ENEMY_DELTA_Y[0], ENEMY_DELTA_Y[1])
         self.start_coor_y_top: int = self.rect.top
+        self.is_immortal = True  # Until plane is not in the screen and sight range it's immortal
         self.create_collide_rect()
 
     def move(self) -> None:
@@ -162,6 +163,10 @@ class EnemyPlane(Plane):
                     self.speed_y *= -1
         self.update_collide_rect()
 
+    def change_immortality(self) -> None:
+        if self.is_immortal and self.rect.centerx <= GAME_SCREEN_WIDTH:
+            self.is_immortal = False
+
     def update_reload_time(self) -> None:
         self.set_reload_time(randint(ENEMY_RELOAD_RANGE[0], ENEMY_RELOAD_RANGE[1]))
 
@@ -177,3 +182,4 @@ class EnemyPlane(Plane):
     def update(self) -> None:
         self.bullet_reload()
         self.move()
+        self.change_immortality()
