@@ -14,9 +14,13 @@ class Player:
 
     def add_to_score(self, value) -> None:
         self.score += value
+        if self.score > 999_999:
+            self.score = 999_999
 
     def add_to_coins(self, value) -> None:
         self.coins += value
+        if self.coins > 99_999:
+            self.coins = 99_999
 
     def reset_score(self) -> None:
         self.score = 0
