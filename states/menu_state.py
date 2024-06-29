@@ -12,13 +12,14 @@ import pygame as pg
 from .base_state import State
 from .menu_button import Button
 from save_load_system import GameSaveLoadSystem
-from constants import BEST_SCORE_FILE_NAME
+from constants import BEST_SCORE_FILE_NAME, GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH
 
 
 class MenuState(State):
     def __init__(self) -> None:
         self.save_load_system = GameSaveLoadSystem()
-        self.font_bauhaus93: pg.font.Fon = pg.font.Font("assets/fonts/bauhaus93.ttf", 34)
+        self.font_bauhaus93: pg.font.Font = pg.font.Font("assets/fonts/bauhaus93.ttf", 34)
+        self.scholarly_ambition: pg.font.Font = pg.font.Font("assets/fonts/scholarly_ambition.ttf", 28)
         super().__init__()
 
     def update_active_button(self, new_ind: int) -> None:
@@ -35,6 +36,14 @@ class MenuState(State):
         self.game_title_bg = pg.transform.rotozoom(self.game_title_bg, 0, 0.8)
 
         self.buttons_bg: pg.Surface = pg.image.load("assets/graphics/menu/buttons_bg.png")
+        self.author_sign_surf_parts: list[pg.Surface] = [
+            self.scholarly_ambition.render(part, True, "#0FF4FF")
+            for part in ("Made with", "By Heir-of-God", "https://github.com/Heir-of-God")
+        ]
+        self.blue_heart: pg.Surface = pg.image.load("assets/graphics/menu/blue_heart.png")
+        self.blue_heart_surf = pg.transform.scale_by(
+            self.blue_heart, self.author_sign_surf_parts[0].get_height() / self.blue_heart.get_height()
+        ).convert_alpha()
 
     def setup_rects_and_buttons(self) -> None:
         self.game_title_bg_rect: pg.Rect = self.game_title_bg.get_rect(center=(721, 150))
@@ -97,6 +106,20 @@ class MenuState(State):
         self.buttons_list[self.current_active_button_ind].change_active()
         self.current_volume_button_ind = 0
         self.current_music_button_ind = 0
+
+        author_sign_part3_rect: pg.Rect = self.author_sign_surf_parts[2].get_rect(
+            bottomright=(GAME_SCREEN_WIDTH - 5, GAME_SCREEN_HEIGHT - 5)
+        )
+        author_sign_part2_rect: pg.Rect = self.author_sign_surf_parts[1].get_rect(
+            bottomleft=(author_sign_part3_rect.left, author_sign_part3_rect.top)
+        )
+        author_sign_part1_rect: pg.Rect = self.author_sign_surf_parts[0].get_rect(
+            bottomleft=(author_sign_part2_rect.left, author_sign_part2_rect.top)
+        )
+        self.author_sign_rects: list[pg.Rect] = [author_sign_part1_rect, author_sign_part2_rect, author_sign_part3_rect]
+        self.blue_heart_rect = self.blue_heart_surf.get_rect(
+            midleft=(author_sign_part1_rect.right, author_sign_part1_rect.centery - 2.5)
+        )
 
     def cleanup(self) -> None:
         super().cleanup()
@@ -169,3 +192,7 @@ class MenuState(State):
         screen.blit(self.player_record_surf, self.player_record_rect)
         for button in self.buttons_list:
             button.draw(screen)
+
+        for i in range(len(self.author_sign_surf_parts)):
+            screen.blit(self.author_sign_surf_parts[i], self.author_sign_rects[i])
+        screen.blit(self.blue_heart_surf, self.blue_heart_rect)
