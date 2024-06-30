@@ -65,6 +65,10 @@ class PauseState(State):
                     self.next = "gameplay"
                 elif self.current_active_button_ind == 1:
                     self.next = "menu"
+            elif pressed_key == pg.K_ESCAPE:
+                self.audio_controller.play_sound("button_change")
+                self.done = True
+                self.next = "gameplay"
 
             # change active button in the pause
             changed_button = False
