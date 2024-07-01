@@ -4,7 +4,7 @@
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![using-pygame](https://img.shields.io/badge/Using-Pygame-1f425f.svg)](https://www.pygame.org/)
 [![repo-stars](https://img.shields.io/github/stars/Heir-of-God/Fly-Rush)](https://github.com/Heir-of-God/Fly-Rush/stargazers)
-[![licence](https://img.shields.io/github/license/Heir-of-God/Fly-Rush)](https://github.com/Heir-of-God/Fly-Rush/blob/main/LICENSE)
+[![licence](https://img.shields.io/github/license/Heir-of-God/Project-S)](https://github.com/Heir-of-God/Fly-Rush/blob/main/LICENSE)
 
 Welcome! Fly Rush is my simple infinity arcade-like game. The game has no end and is created mainly for relaxation after hard work or, on the contrary, for the excitement of scoring more scores. The project was created as a learning project (a Pygame game with a State structure included and multiple Python modules).
 
