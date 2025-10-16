@@ -28,24 +28,24 @@ Follow these steps to set up the Fly Rush game on your local machine:
 2. **Clone the repository with this CLI command (you need to set up your git)**:
 With help of ```cd``` command go to directory where you want to install Fly Rush game and run
    ```bash
-   git clone https://github.com/Heir-of-God/FlyRUSH
+   git clone https://github.com/Heir-of-God/Fly-Rush.git
    ```
 
 3. **Install dependencies**:
-With help of ```cd``` command (like ```cd FlyRUSH```) go to the downloaded FlyRUSH directory and run this command
+With help of ```cd``` command (like ```cd Fly-Rush```) go to the downloaded Fly-Rush directory and run this command
    ```bash
    pip install -r requirements.txt
    ```
 
 4. **Getting normal assets**:
-To change git-lfs assets to normal run this command in the FlyRUSH directory
+To change git-lfs assets to normal run this command in the Fly-Rush directory
    ```bash
     git lfs fetch
     git lfs checkout
    ```
 
 5. **Run game with Python**:
-To run the game use the following command in the FlyRUSH directory (your need your Python to be installed correctly with adding to PATH)
+To run the game use the following command in the Fly-Rush directory (you need your Python to be installed correctly with adding to PATH)
    ```bash
    py main.py 
    ```
